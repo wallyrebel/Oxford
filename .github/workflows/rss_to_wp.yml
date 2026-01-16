@@ -1,0 +1,116 @@
+name: RSS to WordPress Automation
+
+on:
+  schedule:
+    # Run every 15 minutes
+    - cron: '*/15 * * * *'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (no publishing)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      single_feed:
+        description: 'Process only a specific feed (by name)'
+        required: false
+        default: ''
+        type: string
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  process-feeds:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Create data directory
+        run: mkdir -p data
+
+      - name: Restore database from cache
+        uses: actions/cache/restore@v4
+        with:
+          path: data/processed.db
+          key: processed-db-${{ github.run_id }}
+          restore-keys: |
+            processed-db-
+
+      - name: Run RSS to WordPress
+        env:
+          # OpenAI
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL || 'gpt-4.1-nano' }}
+          
+          # WordPress
+          WORDPRESS_BASE_URL: ${{ secrets.WORDPRESS_BASE_URL }}
+          WORDPRESS_USERNAME: ${{ secrets.WORDPRESS_USERNAME }}
+          WORDPRESS_APP_PASSWORD: ${{ secrets.WORDPRESS_APP_PASSWORD }}
+          WORDPRESS_POST_STATUS: ${{ secrets.WORDPRESS_POST_STATUS || 'publish' }}
+          
+          # Image providers (optional)
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          
+          # Logging
+          LOG_LEVEL: ${{ secrets.LOG_LEVEL || 'INFO' }}
+          TIMEZONE: ${{ secrets.TIMEZONE || 'UTC' }}
+          
+          # Email notifications (optional)
+          SMTP_EMAIL: ${{ secrets.SMTP_EMAIL }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
+        run: |
+          ARGS="--config feeds.yaml"
+          
+          # Add dry-run flag if specified
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          
+          # Add single-feed flag if specified
+          if [ -n "${{ github.event.inputs.single_feed }}" ]; then
+            ARGS="$ARGS --single-feed '${{ github.event.inputs.single_feed }}'"
+          fi
+          
+          python -m rss_to_wp run $ARGS
+
+      - name: Save database to cache
+        uses: actions/cache/save@v4
+        with:
+          path: data/processed.db
+          key: processed-db-${{ github.run_id }}
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## RSS to WordPress Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run**: ${{ github.event.inputs.dry_run || 'false' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Single Feed**: ${{ github.event.inputs.single_feed || 'All feeds' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f data/processed.db ]; then
+            COUNT=$(sqlite3 data/processed.db "SELECT COUNT(*) FROM processed_entries;" 2>/dev/null || echo "N/A")
+            echo "- **Total Processed Entries**: $COUNT" >> $GITHUB_STEP_SUMMARY
+          fi

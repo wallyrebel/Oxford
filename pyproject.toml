@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rss-to-wp"
+version = "1.0.0"
+description = "Automated RSS feed to WordPress publisher with AI rewriting"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "TippahNews Auto"}
+]
+keywords = ["rss", "wordpress", "automation", "openai", "news"]
+
+dependencies = [
+    "feedparser>=6.0.10",
+    "requests>=2.31.0",
+    "openai>=1.12.0",
+    "python-dotenv>=1.0.0",
+    "typer[all]>=0.9.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "pendulum>=3.0.0",
+    "tenacity>=8.2.0",
+    "structlog>=24.1.0",
+    "beautifulsoup4>=4.12.0",
+    "Pillow>=10.0.0",
+    "PyYAML>=6.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-mock>=3.12.0",
+    "ruff>=0.1.0",
+    "black>=24.1.0",
+]
+
+[project.scripts]
+rss-to-wp = "rss_to_wp.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+ignore = ["E501"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]

@@ -1,0 +1,43 @@
+﻿# Oxford MS News RSS Feeds Configuration
+# Generated: 2026-01-16
+
+feeds:
+  - name: "Oxford News Feed 1"
+    url: "https://fetchrss.com/feed/1vcaujD2G3c21vgmxPFFOAAU.rss"
+    category: "Local News"
+    enabled: true
+
+  - name: "Oxford News Feed 2"
+    url: "https://fetchrss.com/feed/1vcaujD2G3c21vcd587ZS6st.rss"
+    category: "Local News"
+    enabled: true
+
+  - name: "Oxford News Feed 3"
+    url: "https://fetchrss.com/feed/1vcaujD2G3c21vcd7T1vE718.rss"
+    category: "Local News"
+    enabled: true
+
+  - name: "Oxford News Feed 4"
+    url: "https://fetchrss.com/feed/1vcaujD2G3c21vcdQM3gkGry.rss"
+    category: "Local News"
+    enabled: true
+
+  - name: "Oxford News Feed 5"
+    url: "https://fetchrss.com/feed/1vcaujD2G3c21vcx5mEzl4xf.rss"
+    category: "Local News"
+    enabled: true
+
+  - name: "Oxford News Feed 6"
+    url: "https://fetchrss.com/feed/1vcaujD2G3c21vgmzP4YvDZa.rss"
+    category: "Local News"
+    enabled: true
+
+  - name: "Oxford News Feed 7"
+    url: "https://fetchrss.com/feed/1vcaujD2G3c21vgn2F3WQ9KM.rss"
+    category: "Local News"
+    enabled: true
+
+  - name: "Oxford News Feed 8"
+    url: "https://fetchrss.com/feed/1vcaujD2G3c21vgn1a9hcBJi.rss"
+    category: "Local News"
+    enabled: true
