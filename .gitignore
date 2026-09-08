@@ -62,3 +62,5 @@ htmlcov/
 
 # mypy
 .mypy_cache/
+
+.pytest-work-*/

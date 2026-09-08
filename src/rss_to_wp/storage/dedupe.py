@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -51,6 +51,15 @@ class DedupeStore:
             conn.execute("""
                 CREATE INDEX IF NOT EXISTS idx_feed_url
                 ON processed_entries(feed_url)
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS rejected_entries (
+                    entry_key TEXT NOT NULL,
+                    fingerprint TEXT NOT NULL,
+                    title TEXT, source_url TEXT, reason TEXT,
+                    reviewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (entry_key, fingerprint)
+                )
             """)
             conn.commit()
 
@@ -120,7 +129,7 @@ class DedupeStore:
                     entry_link,
                     wp_post_id,
                     wp_post_url,
-                    datetime.utcnow().isoformat(),
+                    datetime.now(timezone.utc).isoformat(),
                 ),
             )
             conn.commit()
@@ -130,6 +139,45 @@ class DedupeStore:
             key=entry_key,
             wp_post_id=wp_post_id,
         )
+
+    def is_source_processed(self, source_url: str) -> bool:
+        with self._get_connection() as conn:
+            return (
+                conn.execute(
+                    "SELECT 1 FROM processed_entries WHERE entry_link = ?", (source_url,)
+                ).fetchone()
+                is not None
+            )
+
+    def is_rejected(self, entry_key: str, fingerprint: str) -> bool:
+        with self._get_connection() as conn:
+            return (
+                conn.execute(
+                    "SELECT 1 FROM rejected_entries WHERE entry_key = ? AND fingerprint = ?",
+                    (entry_key, fingerprint),
+                ).fetchone()
+                is not None
+            )
+
+    def mark_rejected(
+        self, entry_key: str, fingerprint: str, title: str, source_url: str, reason: str
+    ) -> None:
+        with self._get_connection() as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO rejected_entries (entry_key, fingerprint, title, source_url, reason) VALUES (?, ?, ?, ?, ?)",
+                (entry_key, fingerprint, title, source_url, reason),
+            )
+            conn.commit()
+
+    def get_rejected_entries(self, limit: int = 50) -> list[dict]:
+        with self._get_connection() as conn:
+            return [
+                dict(r)
+                for r in conn.execute(
+                    "SELECT title, source_url, reason, reviewed_at FROM rejected_entries ORDER BY reviewed_at DESC LIMIT ?",
+                    (limit,),
+                )
+            ]
 
     def get_processed_count(self, feed_url: Optional[str] = None) -> int:
         """Get count of processed entries.

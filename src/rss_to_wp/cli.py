@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import sys
 import time
 from pathlib import Path
 from typing import Optional
@@ -22,13 +21,20 @@ from rss_to_wp.feeds import (
     get_entry_content,
     get_entry_link,
     get_entry_title,
+    parse_entry_date,
     parse_feed,
     pick_entries,
 )
 from rss_to_wp.images import download_image, find_fallback_image, find_rss_image
 from rss_to_wp.rewriter import OpenAIRewriter
+from rss_to_wp.rewriter.quality import (
+    EditorialSkipError,
+    canonical_source,
+    source_check,
+    source_fingerprint,
+)
 from rss_to_wp.storage import DedupeStore
-from rss_to_wp.utils import get_logger, setup_logging, send_email_notification, build_summary_email
+from rss_to_wp.utils import build_summary_email, send_email_notification, setup_logging
 from rss_to_wp.wordpress import WordPressClient
 
 # Load environment variables from .env file
@@ -125,7 +131,7 @@ def run(
         logger.error("config_load_error", error=str(e))
         raise typer.Exit(1)
 
-    feeds = feeds_config.feeds
+    feeds = [f for f in feeds_config.feeds if f.enabled]
 
     # Filter to single feed if specified
     if single_feed:
@@ -141,6 +147,9 @@ def run(
     rewriter = OpenAIRewriter(
         api_key=settings.openai_api_key,
         model=settings.openai_model,
+        extraction_model=settings.openai_extraction_model,
+        check_model=settings.openai_check_model,
+        target_min_words=settings.target_min_words,
     )
 
     wp_client = None
@@ -196,17 +205,19 @@ def run(
     )
 
     # Send email notification ONLY if new articles were published
-    if (not dry_run 
+    if (
+        not dry_run
         and published_articles  # Only if there are new articles
-        and settings.smtp_email 
-        and settings.smtp_password 
-        and settings.notification_email):
+        and settings.smtp_email
+        and settings.smtp_password
+        and settings.notification_email
+    ):
         try:
             subject, html_body = build_summary_email(
                 processed_articles=published_articles,
                 skipped_count=total_skipped,
                 error_count=total_errors,
-                site_name="TippahNews",
+                site_name="Oxford, MS News",
             )
             send_email_notification(
                 smtp_email=settings.smtp_email,
@@ -220,7 +231,7 @@ def run(
 
     # Only fail if nothing was processed AND nothing was skipped (complete failure)
     # Partial failures (some articles succeed, some fail) should not cause the run to fail
-    if total_errors > 0 and total_processed == 0 and total_skipped == 0:
+    if total_errors > 0 and total_processed == 0:
         raise typer.Exit(1)
 
 
@@ -255,7 +266,7 @@ def process_feed(
     # Filter entries
     entries = pick_entries(
         entries=feed.entries,
-        max_count=feed_config.max_per_run,
+        max_count=len(feed.entries),
         hours_window=hours,
         timezone=settings.timezone,
     )
@@ -267,7 +278,18 @@ def process_feed(
     logger.info("entries_to_process", name=feed_config.name, count=len(entries))
 
     for entry in entries:
+        if processed >= feed_config.max_per_run:
+            break
+        entry_key = generate_entry_key(entry, feed_config.url)
+        fingerprint = source_fingerprint(get_entry_title(entry), get_entry_content(entry))
         try:
+            source_link = canonical_source(get_entry_link(entry) or "")
+            if dedupe_store.is_rejected(entry_key, fingerprint):
+                skipped += 1
+                continue
+            if dedupe_store.is_source_processed(source_link):
+                skipped += 1
+                continue
             # Generate unique key
             entry_key = generate_entry_key(entry, feed_config.url)
 
@@ -278,6 +300,15 @@ def process_feed(
                     key=entry_key,
                     title=get_entry_title(entry)[:50],
                 )
+                skipped += 1
+                continue
+
+            # Check WordPress before buying model calls or uploading media.
+            if wp_client and wp_client.check_duplicate_by_source_url(source_link):
+                if not dry_run:
+                    dedupe_store.mark_processed(
+                        entry_key, feed_config.url, get_entry_title(entry), source_link
+                    )
                 skipped += 1
                 continue
 
@@ -293,29 +324,52 @@ def process_feed(
             )
 
             if result:
-                # Mark as processed
-                dedupe_store.mark_processed(
-                    entry_key=entry_key,
-                    feed_url=feed_config.url,
-                    entry_title=get_entry_title(entry),
-                    entry_link=get_entry_link(entry) or "",
-                    wp_post_id=result.get("id"),
-                    wp_post_url=result.get("link"),
-                )
+                # A dry run must never consume real deduplication state.
+                if not dry_run:
+                    dedupe_store.mark_processed(
+                        entry_key=entry_key,
+                        feed_url=feed_config.url,
+                        entry_title=get_entry_title(entry),
+                        entry_link=source_link,
+                        wp_post_id=result.get("id"),
+                        wp_post_url=result.get("link"),
+                    )
                 processed += 1
-                
+
                 # Track for email notification
-                if published_articles is not None and result.get("link"):
-                    published_articles.append({
-                        "title": result.get("title", {}).get("rendered", get_entry_title(entry)),
-                        "url": result.get("link"),
-                        "feed_name": feed_config.name,
-                    })
+                if not dry_run and published_articles is not None and result.get("link"):
+                    published_articles.append(
+                        {
+                            "title": result.get("title", {}).get(
+                                "rendered", get_entry_title(entry)
+                            ),
+                            "url": result.get("link"),
+                            "feed_name": feed_config.name,
+                        }
+                    )
             else:
                 errors += 1
 
             # Rate limit between entries
             time.sleep(1)
+
+        except EditorialSkipError as exc:
+            skipped += 1
+            logger.warning(
+                "editorial_review_required",
+                title=get_entry_title(entry),
+                reason=str(exc),
+                source=get_entry_link(entry),
+            )
+            if not dry_run:
+                dedupe_store.mark_rejected(
+                    entry_key,
+                    fingerprint,
+                    get_entry_title(entry),
+                    get_entry_link(entry) or "",
+                    str(exc),
+                )
+            continue
 
         except Exception as e:
             logger.error(
@@ -345,7 +399,8 @@ def process_entry(
     """
     title = get_entry_title(entry)
     content = get_entry_content(entry)
-    link = get_entry_link(entry)
+    link = canonical_source(get_entry_link(entry) or "")
+    source_check(title, content)
 
     logger.info("processing_entry", title=title[:50])
 
@@ -354,6 +409,9 @@ def process_entry(
         content=content,
         original_title=title,
         use_original_title=feed_config.use_original_title,
+        source_url=link,
+        publisher_context=feed_config.publisher_context,
+        source_date=str(parse_entry_date(entry) or ""),
     )
 
     if not rewritten:
@@ -362,6 +420,9 @@ def process_entry(
 
     # Find image
     featured_media_id = None
+    image_result = None
+    image_bytes = None
+    filename = ""
 
     # Try RSS image first
     image_url = find_rss_image(entry, base_url=link or "")
@@ -389,7 +450,10 @@ def process_entry(
             image_result = download_image(fallback["url"])
             if image_result:
                 image_bytes, filename, _ = image_result
-                image_alt = fallback["alt_text"]
+                image_alt = "Illustrative stock photo: " + fallback["alt_text"]
+                rewritten[
+                    "body"
+                ] += "\n<p><em>Image: Illustrative stock photo; it does not depict the reported event.</em></p>"
             else:
                 fallback = None
 
@@ -414,6 +478,10 @@ def process_entry(
     if not dry_run and wp_client and feed_config.default_tags:
         tag_ids = wp_client.get_or_create_tags(feed_config.default_tags)
 
+    # Validate the media and taxonomy plan in dry runs as well.
+    if not image_result or not feed_config.default_category or not feed_config.default_tags:
+        raise RuntimeError("Category, tags and a usable featured image are required")
+
     # Create post
     if dry_run:
         logger.info(
@@ -428,6 +496,10 @@ def process_entry(
 
     if not wp_client:
         return None
+
+    if not category_id or not tag_ids or not featured_media_id:
+        # Retry operational failures on the next run; never publish incomplete posts.
+        raise RuntimeError("Category, tags and a successfully uploaded featured image are required")
 
     post = wp_client.create_post(
         title=rewritten["headline"],
@@ -459,6 +531,13 @@ def status() -> None:
             typer.echo(f"    Processed: {entry['processed_at']}")
             if entry.get("wp_post_url"):
                 typer.echo(f"    URL: {entry['wp_post_url']}")
+
+
+@app.command()
+def review() -> None:
+    """Show rejected sources for editorial review. Changed source text is reconsidered."""
+    for item in DedupeStore().get_rejected_entries():
+        typer.echo(f"{item['title']} | {item['source_url']} | {item['reason']}")
 
 
 @app.command()

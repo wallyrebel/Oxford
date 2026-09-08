@@ -1,11 +1,13 @@
 # RSS to WordPress Automation
 
-Automated RSS feed monitoring, AI-powered article rewriting, and WordPress publishing.
+Automated RSS feed monitoring, source-grounded extraction, rewriting and checking, and WordPress publishing.
+
+See [the editorial pipeline guide](EDITORIAL_PIPELINE.md) for quality gates, model costs, required categories/tags/images, the soft 200-word target, deployment and rollback.
 
 ## Features
 
 - **RSS Feed Monitoring**: Parse RSS/Atom feeds with robust error handling
-- **AI Rewriting**: Convert press releases to AP-style news articles using GPT-5 mini
+- **AI Rewriting**: Extract with GPT-4.1 nano, rewrite with GPT-5.6 Luna and check with GPT-5.4 mini
 - **Smart Deduplication**: SQLite-based tracking ensures no duplicate posts
 - **Image Handling**: 
   - Extract images from RSS (media:content, enclosures, HTML)
@@ -19,8 +21,8 @@ Automated RSS feed monitoring, AI-powered article rewriting, and WordPress publi
 ### 1. Clone and Install
 
 ```bash
-git clone https://github.com/yourusername/tippahnews-auto.git
-cd tippahnews-auto
+git clone https://github.com/wallyrebel/Oxford.git
+cd Oxford
 
 # Create virtual environment
 python -m venv .venv
@@ -84,6 +86,7 @@ python -m rss_to_wp status
 | Command | Description |
 |---------|-------------|
 | `run` | Process feeds and publish to WordPress |
+| `review` | Show withheld sources and editorial reasons |
 | `status` | Show processed entry count and recent entries |
 | `clear-db` | Clear the deduplication database |
 

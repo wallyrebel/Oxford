@@ -1,43 +1,89 @@
-﻿# Oxford MS News RSS Feeds Configuration
-# Generated: 2026-01-16
-
+# Oxford MS News: verified source identities; URLs and feed names preserved.
 feeds:
-  - name: "Oxford News Feed 1"
-    url: "https://fetchrss.com/feed/1vcaujD2G3c21vgmxPFFOAAU.rss"
-    category: "Local News"
-    enabled: true
-
-  - name: "Oxford News Feed 2"
-    url: "https://fetchrss.com/feed/1vcaujD2G3c21vcd587ZS6st.rss"
-    category: "Local News"
-    enabled: true
-
-  - name: "Oxford News Feed 3"
-    url: "https://fetchrss.com/feed/1vcaujD2G3c21vcd7T1vE718.rss"
-    category: "Local News"
-    enabled: true
-
-  - name: "Oxford News Feed 4"
-    url: "https://fetchrss.com/feed/1vcaujD2G3c21vcdQM3gkGry.rss"
-    category: "Local News"
-    enabled: true
-
-  - name: "Oxford News Feed 5"
-    url: "https://fetchrss.com/feed/1vcaujD2G3c21vcx5mEzl4xf.rss"
-    category: "Local News"
-    enabled: true
-
-  - name: "Oxford News Feed 6"
-    url: "https://fetchrss.com/feed/1vcaujD2G3c21vgmzP4YvDZa.rss"
-    category: "Local News"
-    enabled: true
-
-  - name: "Oxford News Feed 7"
-    url: "https://fetchrss.com/feed/1vcaujD2G3c21vgn2F3WQ9KM.rss"
-    category: "Local News"
-    enabled: true
-
-  - name: "Oxford News Feed 8"
-    url: "https://fetchrss.com/feed/1vcaujD2G3c21vgn1a9hcBJi.rss"
-    category: "Local News"
-    enabled: true
+- name: Oxford News Feed 1
+  url: https://fetchrss.com/feed/1vcaujD2G3c21vgmxPFFOAAU.rss
+  default_category: Oxford News
+  default_tags:
+  - Oxford School District
+  - Local News
+  max_per_run: 5
+  enabled: true
+  publisher_context: 'Publisher: Oxford School District. This feed may share another
+    organization''s announcement; attribute the original speaker when the source identifies
+    one.'
+- name: Oxford News Feed 2
+  url: https://fetchrss.com/feed/1vcaujD2G3c21vcd587ZS6st.rss
+  default_category: Mississippi News
+  default_tags:
+  - Crime Stoppers of Northeast Mississippi
+  - Mississippi News
+  max_per_run: 5
+  enabled: true
+  publisher_context: 'Publisher: Crime Stoppers of Northeast Mississippi. This feed
+    may share another organization''s announcement; attribute the original speaker
+    when the source identifies one.'
+- name: Oxford News Feed 3
+  url: https://fetchrss.com/feed/1vcaujD2G3c21vcd7T1vE718.rss
+  default_category: Mississippi News
+  default_tags:
+  - Mississippi Department of Public Safety
+  - Mississippi News
+  max_per_run: 5
+  enabled: true
+  publisher_context: 'Publisher: Mississippi Department of Public Safety. This feed
+    may share another organization''s announcement; attribute the original speaker
+    when the source identifies one.'
+- name: Oxford News Feed 4
+  url: https://fetchrss.com/feed/1vcaujD2G3c21vcdQM3gkGry.rss
+  default_category: Oxford News
+  default_tags:
+  - Oxford MS Police Department
+  - Local News
+  max_per_run: 5
+  enabled: true
+  publisher_context: 'Publisher: Oxford MS Police Department. This feed may share
+    another organization''s announcement; attribute the original speaker when the
+    source identifies one.'
+- name: Oxford News Feed 5
+  url: https://fetchrss.com/feed/1vcaujD2G3c21vcx5mEzl4xf.rss
+  default_category: Lafayette County News
+  default_tags:
+  - Lafayette County Sheriff's Office
+  - Local News
+  max_per_run: 5
+  enabled: true
+  publisher_context: 'Publisher: Lafayette County Sheriff''s Office. This feed may
+    share another organization''s announcement; attribute the original speaker when
+    the source identifies one.'
+- name: Oxford News Feed 6
+  url: https://fetchrss.com/feed/1vcaujD2G3c21vgmzP4YvDZa.rss
+  default_category: Oxford News
+  default_tags:
+  - City of Oxford
+  - Local News
+  max_per_run: 5
+  enabled: true
+  publisher_context: 'Publisher: City of Oxford. This feed may share another organization''s
+    announcement; attribute the original speaker when the source identifies one.'
+- name: Oxford News Feed 7
+  url: https://fetchrss.com/feed/1vcaujD2G3c21vgn2F3WQ9KM.rss
+  default_category: Lafayette County News
+  default_tags:
+  - Lafayette County EMA
+  - Local News
+  max_per_run: 5
+  enabled: true
+  publisher_context: 'Publisher: Lafayette County EMA. This feed may share another
+    organization''s announcement; attribute the original speaker when the source identifies
+    one.'
+- name: Oxford News Feed 8
+  url: https://fetchrss.com/feed/1vcaujD2G3c21vgn1a9hcBJi.rss
+  default_category: Oxford Sports
+  default_tags:
+  - Oxford Charger Booster Club
+  - Oxford Sports
+  max_per_run: 5
+  enabled: true
+  publisher_context: 'Publisher: Oxford Charger Booster Club. This feed may share
+    another organization''s announcement; attribute the original speaker when the
+    source identifies one.'
