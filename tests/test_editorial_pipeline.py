@@ -123,6 +123,8 @@ def test_extractor_cannot_invent_its_evidence():
         ({"paragraphs": ["<script>alert(1)</script>"]}, "markup_in_plain_text"),
         ({"paragraphs": ["The district announced a closure."] * 2}, "repeated_paragraph"),
         ({"paragraphs": ["The post did not provide additional details."]}, "source_absence_filler"),
+        ({"paragraphs": ["The district did not provide additional details about the threshold."]}, "source_absence_filler"),
+        ({"paragraphs": ["No further details were available."]}, "source_absence_filler"),
     ],
 )
 def test_known_hallucinations_and_unsafe_output_are_blocked(change, reason):
@@ -157,6 +159,18 @@ def test_deterministic_repair_still_requires_independent_approval():
     assert len(calls) == 4
     assert SOURCE in calls[3].kwargs["messages"][1]["content"]
     assert calls[3].kwargs["response_format"]["json_schema"]["name"] == "check_article"
+
+
+def test_dated_closure_cannot_become_an_undated_upcoming_notice():
+    draft = {"headline": "Oxford road closure", "excerpt": "A city road will close.",
+             "paragraphs": ["East Jackson Avenue will close for repairs."]}
+    with pytest.raises(EditorialSkipError, match="omitted_source_calendar_date"):
+        validate_draft(draft, "East Jackson Avenue will close on Tuesday Sept 8th.")
+
+
+def test_calendar_date_spelling_and_ordinals_are_equivalent():
+    from rss_to_wp.rewriter.quality import calendar_dates
+    assert calendar_dates("September 8th and January 1") == calendar_dates("Sept. 8 and Jan. 1st")
 
 
 def test_truncated_api_response_is_an_operational_failure():

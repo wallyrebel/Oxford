@@ -71,6 +71,15 @@ def numeric_details(text: str) -> set[str]:
     }
 
 
+def calendar_dates(text: str) -> set[tuple[str, int]]:
+    """Retain explicit month/day facts even when spelling and ordinals change."""
+    return {(month[:3].lower(), int(day)) for month, day in re.findall(
+        r"\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?"
+        r"|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
+        r"\.?\s+(\d{1,2})(?:st|nd|rd|th)?\b", text, re.I
+    )}
+
+
 def source_context(url: str, configured: str = "") -> str:
     """Only expand publisher identities verified by an editor, never an ambiguous acronym."""
     parts = urlsplit(url)
@@ -92,13 +101,17 @@ def validate_draft(draft: dict, source: str, context: str = "") -> dict:
     if not all(isinstance(p, str) and p.strip() for p in paragraphs):
         raise EditorialSkipError("empty_paragraph")
     combined = " ".join([draft["headline"], draft["excerpt"], *paragraphs])
+    if calendar_dates(source) - calendar_dates(combined):
+        raise EditorialSkipError("omitted_source_calendar_date")
     if re.search(r"<[^>]+>|```", combined):
         raise EditorialSkipError("markup_in_plain_text_draft")
     if UNAVAILABLE.search(combined):
         raise EditorialSkipError("placeholder_in_draft")
     if re.search(
-        r"\b(?:post|source|announcement|release|notice)\s+(?:did not|does not|didn't|doesn't)"
-        r"\s+(?:provide|specify|include|give|offer|state|identify)\b", combined, re.I
+        r"\b(?:did not|does not|has not|have not|didn['’]t|doesn['’]t)"
+        r"\s+(?:provide|specify|include|give|offer|state|identify|release|announce)\b"
+        r"[^.!?]{0,140}\b(?:details?|information|dates?|times?|locations?|names?)\b"
+        r"|\bno (?:additional|further|other) (?:details|information)\b", combined, re.I
     ):
         raise EditorialSkipError("source_absence_filler")
     if len(draft["headline"]) > 180 or len(draft["excerpt"]) > 450:
