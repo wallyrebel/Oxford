@@ -2,8 +2,8 @@ name: RSS to WordPress Automation
 
 on:
   schedule:
-    # Run every 15 minutes
-    - cron: '*/15 * * * *'
+    # Frequent checks; quality gates never fill a quota with unsupported stories.
+    - cron: '7,22,37,52 * * * *'
   
   # Allow manual trigger
   workflow_dispatch:
@@ -11,7 +11,7 @@ on:
       dry_run:
         description: 'Run in dry-run mode (no publishing)'
         required: false
-        default: 'false'
+        default: 'true'
         type: choice
         options:
           - 'true'
@@ -25,9 +25,17 @@ on:
 env:
   PYTHON_VERSION: '3.11'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: oxford-rss-publisher
+  cancel-in-progress: false
+
 jobs:
   process-feeds:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     
     steps:
       - name: Checkout repository
@@ -48,6 +56,11 @@ jobs:
       - name: Create data directory
         run: mkdir -p data
 
+      - name: Run publishing safeguards
+        run: |
+          pip install pytest
+          python -m pytest -q
+
       - name: Restore database from cache
         uses: actions/cache/restore@v4
         with:
@@ -60,7 +73,12 @@ jobs:
         env:
           # OpenAI
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL || 'gpt-4.1-nano' }}
+          OPENAI_EXTRACTION_MODEL: ${{ vars.OPENAI_EXTRACTION_MODEL || 'gpt-4.1-nano' }}
+          OPENAI_MODEL: ${{ vars.OPENAI_REWRITE_MODEL || 'gpt-5.6-luna' }}
+          OPENAI_CHECK_MODEL: ${{ vars.OPENAI_CHECK_MODEL || 'gpt-5.4-mini' }}
+          TARGET_MIN_WORDS: ${{ vars.TARGET_MIN_WORDS || '200' }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          SINGLE_FEED: ${{ github.event.inputs.single_feed }}
           
           # WordPress
           WORDPRESS_BASE_URL: ${{ secrets.WORDPRESS_BASE_URL }}
@@ -74,40 +92,52 @@ jobs:
           
           # Logging
           LOG_LEVEL: ${{ secrets.LOG_LEVEL || 'INFO' }}
-          TIMEZONE: ${{ secrets.TIMEZONE || 'UTC' }}
+          TIMEZONE: ${{ vars.TIMEZONE || 'America/Chicago' }}
           
           # Email notifications (optional)
-          SMTP_EMAIL: ${{ secrets.SMTP_EMAIL }}
+          SMTP_EMAIL: ${{ github.event_name == 'schedule' && secrets.SMTP_EMAIL || '' }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
         run: |
-          ARGS="--config feeds.yaml"
+          ARGS=(--config feeds.yaml)
           
           # Add dry-run flag if specified
-          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-            ARGS="$ARGS --dry-run"
+          if [ "$DRY_RUN" = "true" ]; then
+            ARGS+=(--dry-run)
           fi
           
           # Add single-feed flag if specified
-          if [ -n "${{ github.event.inputs.single_feed }}" ]; then
-            ARGS="$ARGS --single-feed '${{ github.event.inputs.single_feed }}'"
+          if [ -n "$SINGLE_FEED" ]; then
+            ARGS+=(--single-feed "$SINGLE_FEED")
           fi
           
-          python -m rss_to_wp run $ARGS
+          python -m rss_to_wp run "${ARGS[@]}"
 
       - name: Save database to cache
+        if: always() && github.event.inputs.dry_run != 'true'
         uses: actions/cache/save@v4
         with:
           path: data/processed.db
           key: processed-db-${{ github.run_id }}
 
+      - name: Preserve database recovery copy
+        if: always() && github.event.inputs.dry_run != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: oxford-publishing-state-${{ github.run_id }}
+          path: data/processed.db
+          retention-days: 30
+
       - name: Summary
         if: always()
+        env:
+          SUMMARY_DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          SUMMARY_SINGLE_FEED: ${{ github.event.inputs.single_feed || 'All feeds' }}
         run: |
           echo "## RSS to WordPress Run Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Dry Run**: ${{ github.event.inputs.dry_run || 'false' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Single Feed**: ${{ github.event.inputs.single_feed || 'All feeds' }}" >> $GITHUB_STEP_SUMMARY
+          printf '%s\n' "- **Dry Run**: $SUMMARY_DRY_RUN" >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' "- **Single Feed**: $SUMMARY_SINGLE_FEED" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> $GITHUB_STEP_SUMMARY
           
           if [ -f data/processed.db ]; then

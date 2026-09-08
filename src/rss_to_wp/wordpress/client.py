@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import re
 import time
+from html import escape, unescape
 from typing import Optional
-from urllib.parse import quote
 
 import requests
 
+from rss_to_wp.rewriter.quality import canonical_source
 from rss_to_wp.utils import get_logger
 from rss_to_wp.wordpress.media import wp_upload_media
 
@@ -40,10 +41,12 @@ class WordPressClient:
 
         self.session = requests.Session()
         self.session.auth = (username, password)
-        self.session.headers.update({
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        })
+        self.session.headers.update(
+            {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+        )
 
         self._category_cache: dict[str, int] = {}
         self._tag_cache: dict[str, int] = {}
@@ -96,7 +99,7 @@ class WordPressClient:
 
         except Exception as e:
             logger.warning("duplicate_check_error", slug=slug, error=str(e))
-            return False  # Assume no duplicate on error
+            raise RuntimeError("Duplicate check failed; publishing deferred") from e
 
     def check_duplicate_by_source_url(self, source_url: str) -> bool:
         """Check if a post containing this source URL already exists.
@@ -131,7 +134,10 @@ class WordPressClient:
             # Check if any post actually contains this exact URL
             for post in posts:
                 content = post.get("content", {}).get("rendered", "")
-                if source_url in content:
+                if canonical_source(source_url) in [
+                    canonical_source(unescape(u))
+                    for u in re.findall(r'href=["\'](https?://[^"\']+)["\']', content)
+                ]:
                     logger.info(
                         "duplicate_found_by_source_url",
                         source_url=source_url[:60],
@@ -144,7 +150,7 @@ class WordPressClient:
 
         except Exception as e:
             logger.warning("source_url_check_error", source_url=source_url[:60], error=str(e))
-            return False  # Assume no duplicate on error
+            raise RuntimeError("Duplicate check failed; publishing deferred") from e
 
     def get_or_create_category(self, name: str) -> Optional[int]:
         """Get category ID, creating it if it doesn't exist.
@@ -343,12 +349,12 @@ class WordPressClient:
                 source_url=source_url[:60],
             )
             return None  # Return None to indicate skip
-        
+
         self._rate_limit()
 
         # Add source attribution to content
         if source_url:
-            source_html = f'\n\n<p><em>Source: <a href="{source_url}" target="_blank" rel="noopener">Original Article</a></em></p>'
+            source_html = f'\n\n<p><em>Source: <a href="{escape(source_url, quote=True)}" target="_blank" rel="noopener">Original source announcement</a></em></p>'
             content = content + source_html
 
         post_data = {

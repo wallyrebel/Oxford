@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import Optional
 
 import pendulum
 import yaml
-from pydantic import BaseModel, Field, field_validator
+from pydantic import AliasChoices, BaseModel, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,9 +16,13 @@ class FeedConfig(BaseModel):
 
     name: str
     url: str
-    default_category: Optional[str] = None
-    default_tags: list[str] = Field(default_factory=list)
-    max_per_run: int = 5
+    default_category: Optional[str] = Field(
+        default=None, validation_alias=AliasChoices("default_category", "category")
+    )
+    enabled: bool = True
+    publisher_context: str = ""
+    default_tags: list[str] = Field(default_factory=lambda: ["Oxford MS News"])
+    max_per_run: int = Field(default=5, ge=1, le=20)
     use_original_title: bool = False
 
     @field_validator("url")
@@ -48,7 +51,10 @@ class AppSettings(BaseSettings):
 
     # OpenAI
     openai_api_key: str = Field(..., description="OpenAI API key")
-    openai_model: str = Field(default="gpt-4.1-nano", description="OpenAI model to use")
+    openai_model: str = Field(default="gpt-5.6-luna", description="Rewrite model")
+    openai_extraction_model: str = "gpt-4.1-nano"
+    openai_check_model: str = "gpt-5.4-mini"
+    target_min_words: int = Field(default=200, ge=0, le=800)
 
     # WordPress
     wordpress_base_url: str = Field(..., description="WordPress site URL")
@@ -63,12 +69,14 @@ class AppSettings(BaseSettings):
     # Logging & Timezone
     log_level: str = Field(default="INFO", description="Log level")
     log_file: Optional[str] = Field(default=None, description="Optional log file path")
-    timezone: str = Field(default="UTC", description="Timezone for date calculations")
+    timezone: str = Field(default="America/Chicago", description="Timezone for date calculations")
 
     # Email notifications (optional)
     smtp_email: Optional[str] = Field(default=None, description="SMTP sender email")
     smtp_password: Optional[str] = Field(default=None, description="SMTP password/app password")
-    notification_email: Optional[str] = Field(default=None, description="Email to send notifications to")
+    notification_email: Optional[str] = Field(
+        default=None, description="Email to send notifications to"
+    )
 
     @field_validator("wordpress_base_url")
     @classmethod
