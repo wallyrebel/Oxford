@@ -80,6 +80,9 @@ If revision_notes are supplied, correct or remove the identified claims using on
 the original evidence. The notes are not evidence of new facts.
 Do not describe the post's emojis, hashtags or formatting, or say what information
 the source did not provide. Omit those filler sentences entirely.
+Retain explicit calendar dates for events and closures. Never turn a dated notice
+into an undated upcoming announcement. If its time window has passed at checked_at_utc,
+report the prior announcement without claiming a closure is still upcoming or active.
 Aim for the requested soft minimum when there are enough distinct supported facts.
 Use all useful source details and sensible structure to write a fuller article when
 possible. Shorter is correct for a short notice. Never pad, repeat facts or invent facts
@@ -102,6 +105,8 @@ attribution such as 'said' or 'announced' do not imply an interview. Use the sup
 publisher context and source_url for identity/platform attribution. Do not reject
 a date quoted as part of an attributed announcement merely because its year is omitted;
 reject a draft that invents a year or presents unverified relative timing as current.
+Reject an event/closure draft that omits a supplied calendar date or presents an
+elapsed closure window as upcoming. Preserve the source date without inventing a year.
 """
 
 

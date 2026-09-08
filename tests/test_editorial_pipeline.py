@@ -161,6 +161,18 @@ def test_deterministic_repair_still_requires_independent_approval():
     assert calls[3].kwargs["response_format"]["json_schema"]["name"] == "check_article"
 
 
+def test_dated_closure_cannot_become_an_undated_upcoming_notice():
+    draft = {"headline": "Oxford road closure", "excerpt": "A city road will close.",
+             "paragraphs": ["East Jackson Avenue will close for repairs."]}
+    with pytest.raises(EditorialSkipError, match="omitted_source_calendar_date"):
+        validate_draft(draft, "East Jackson Avenue will close on Tuesday Sept 8th.")
+
+
+def test_calendar_date_spelling_and_ordinals_are_equivalent():
+    from rss_to_wp.rewriter.quality import calendar_dates
+    assert calendar_dates("September 8th and January 1") == calendar_dates("Sept. 8 and Jan. 1st")
+
+
 def test_truncated_api_response_is_an_operational_failure():
     obj = rewriter([])
     obj.client.chat.completions.create.side_effect = None
