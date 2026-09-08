@@ -5,6 +5,10 @@ on:
     # Frequent checks; quality gates never fill a quota with unsupported stories.
     - cron: '7,22,37,52 * * * *'
   
+  # Temporary branch-only verification; removed after the dry run.
+  push:
+    branches: [fix-publisher-scheduling]
+
   # Allow manual trigger
   workflow_dispatch:
     inputs:
@@ -28,12 +32,12 @@ env:
 permissions:
   contents: read
 
-concurrency:
-  group: oxford-rss-publisher
-  cancel-in-progress: false
-
 jobs:
   process-feeds:
+    # Materialize jobs before queueing, and keep previews out of the publishing queue.
+    concurrency:
+      group: oxford-news-${{ (github.event_name == 'push' || github.event.inputs.dry_run == 'true') && 'preview' || 'publisher' }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 45
     
@@ -77,8 +81,8 @@ jobs:
           OPENAI_MODEL: ${{ vars.OPENAI_REWRITE_MODEL || 'gpt-5.6-luna' }}
           OPENAI_CHECK_MODEL: ${{ vars.OPENAI_CHECK_MODEL || 'gpt-5.4-mini' }}
           TARGET_MIN_WORDS: ${{ vars.TARGET_MIN_WORDS || '200' }}
-          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
-          SINGLE_FEED: ${{ github.event.inputs.single_feed }}
+          DRY_RUN: ${{ github.event_name == 'push' && 'true' || github.event.inputs.dry_run || 'false' }}
+          SINGLE_FEED: ${{ github.event_name == 'push' && 'OxfordNewsFeed1' || github.event.inputs.single_feed }}
           
           # WordPress
           WORDPRESS_BASE_URL: ${{ secrets.WORDPRESS_BASE_URL }}
@@ -114,14 +118,14 @@ jobs:
           python -m rss_to_wp run "${ARGS[@]}"
 
       - name: Save database to cache
-        if: always() && github.event.inputs.dry_run != 'true'
+        if: always() && github.event_name != 'push' && github.event.inputs.dry_run != 'true'
         uses: actions/cache/save@v4
         with:
           path: data/processed.db
           key: processed-db-${{ github.run_id }}
 
       - name: Preserve database recovery copy
-        if: always() && github.event.inputs.dry_run != 'true'
+        if: always() && github.event_name != 'push' && github.event.inputs.dry_run != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: oxford-publishing-state-${{ github.run_id }}
@@ -131,7 +135,7 @@ jobs:
       - name: Summary
         if: always()
         env:
-          SUMMARY_DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          SUMMARY_DRY_RUN: ${{ github.event_name == 'push' && 'true' || github.event.inputs.dry_run || 'false' }}
           SUMMARY_SINGLE_FEED: ${{ github.event.inputs.single_feed || 'All feeds' }}
         run: |
           echo "## RSS to WordPress Run Summary" >> $GITHUB_STEP_SUMMARY
