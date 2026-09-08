@@ -206,7 +206,7 @@ sudo systemctl start rss-to-wp.timer
 ├── data/                   # Runtime data (gitignored)
 │   └── processed.db
 ├── .github/workflows/
-│   └── rss_to_wp.yml
+│   └── publish_news.yml
 ├── feeds.yaml
 ├── .env.example
 ├── pyproject.toml

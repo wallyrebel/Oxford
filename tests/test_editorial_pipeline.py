@@ -122,6 +122,7 @@ def test_extractor_cannot_invent_its_evidence():
         ),
         ({"paragraphs": ["<script>alert(1)</script>"]}, "markup_in_plain_text"),
         ({"paragraphs": ["The district announced a closure."] * 2}, "repeated_paragraph"),
+        ({"paragraphs": ["The post did not provide additional details."]}, "source_absence_filler"),
     ],
 )
 def test_known_hallucinations_and_unsafe_output_are_blocked(change, reason):
@@ -130,9 +131,32 @@ def test_known_hallucinations_and_unsafe_output_are_blocked(change, reason):
 
 
 def test_checker_failure_never_returns_a_publishable_article():
-    obj = rewriter([facts(), DRAFT, {"approved": False, "issues": ["Unsupported attribution"]}])
+    rejection = {"approved": False, "issues": ["Unsupported attribution"]}
+    obj = rewriter([facts(), DRAFT, rejection, DRAFT, rejection])
     with pytest.raises(EditorialSkipError, match="checker_rejected"):
         obj.rewrite(SOURCE, TITLE, source_url=LINK)
+    assert obj.client.chat.completions.create.call_count == 5
+
+
+def test_corrected_draft_requires_a_fresh_check_against_original_source():
+    rejection = {"approved": False, "issues": ["Remove unsupported attribution"]}
+    obj = rewriter([facts(), DRAFT, rejection, DRAFT, {"approved": True, "issues": []}])
+    assert obj.rewrite(SOURCE, TITLE, source_url=LINK)["headline"] == DRAFT["headline"]
+    calls = obj.client.chat.completions.create.call_args_list
+    assert calls[3].kwargs["response_format"]["json_schema"]["name"] == "revise_article"
+    assert SOURCE in calls[3].kwargs["messages"][1]["content"]
+    assert SOURCE in calls[4].kwargs["messages"][1]["content"]
+    assert calls[4].kwargs["response_format"]["json_schema"]["name"] == "check_article"
+
+
+def test_deterministic_repair_still_requires_independent_approval():
+    filler = {**DRAFT, "paragraphs": ["The post did not specify a calendar date."]}
+    obj = rewriter([facts(), filler, DRAFT, {"approved": True, "issues": []}])
+    assert obj.rewrite(SOURCE, TITLE, source_url=LINK)["headline"] == DRAFT["headline"]
+    calls = obj.client.chat.completions.create.call_args_list
+    assert len(calls) == 4
+    assert SOURCE in calls[3].kwargs["messages"][1]["content"]
+    assert calls[3].kwargs["response_format"]["json_schema"]["name"] == "check_article"
 
 
 def test_truncated_api_response_is_an_operational_failure():

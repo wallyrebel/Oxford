@@ -39,6 +39,9 @@ illustration label and are not represented as images of the reported event.
 - Source failures are rejected before model calls. The extraction stage must quote
   evidence actually present in the source. The checking stage receives the original
   source, not merely the extraction model's interpretation.
+- A rejected draft gets at most one correction attempt, then the same independent
+  checker reviews every sentence against the original source again. This adds bounded
+  token cost only when a correction is attempted.
 - Ambiguous or unsupported drafts are withheld. Shortness alone is not a rejection.
 - Rejected source fingerprints are stored separately from published entries to avoid
   paying for the same failed source every 15 minutes. Changed text is reconsidered.
@@ -48,7 +51,7 @@ illustration label and are not represented as images of the reported event.
   failed metadata creation do not produce a public article. Operational failures retry.
 - Only escaped paragraph text becomes editorial HTML. Source instructions cannot
   authorize changes to prompts or checks. Claims, names, numbers and quotes are checked.
-- Dry runs never consume publication history. Workflows are serialized; the SQLite
+- Dry runs never consume publication history. Publishing jobs are serialized separately from preview jobs; the SQLite
   database is cached even after partial failure, with 30-day recovery artifacts.
 - Manual verification runs do not send the scheduled publication-summary emails.
 
@@ -69,3 +72,17 @@ To roll back code, revert the deployment commit/PR. Keep `data/processed.db`; re
 or deleting publication history can cause duplicate work. Rejected entries are an
 additive table, compatible with the old database. The old schedule remains recoverable
 in Git history. Reverting code restores the old weaker editorial checks.
+
+## Scheduler recovery on September 8, 2026
+
+Use **Oxford News Publisher** (`.github/workflows/publish_news.yml`) in Actions.
+The previous `rss_to_wp.yml` registration stopped starting jobs even when active;
+normal and force-cancel returned HTTP 409 for its ghost queued runs. Refreshing
+its enabled state did not repair dispatch. A freshly registered workflow started
+immediately. Historical run records are retained for diagnosis.
+
+The replacement keeps the four hourly checks, existing accounts/secrets, feeds,
+cache keys and recovery artifacts. Concurrency applies to the job, with separate
+preview and publication groups. A preview cannot hold the production queue.
+Do not re-enable the retired workflow or run a second publisher in parallel.
+The branch-only push trigger used to verify recovery was removed before deployment.

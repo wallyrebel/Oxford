@@ -1,4 +1,4 @@
-name: RSS to WordPress Automation
+name: Oxford News Publisher
 
 on:
   schedule:
@@ -17,7 +17,7 @@ on:
           - 'true'
           - 'false'
       single_feed:
-        description: 'Process only a specific feed (by name)'
+        description: 'Exact feed name, e.g. Oxford News Feed 1; blank checks all feeds'
         required: false
         default: ''
         type: string
@@ -28,12 +28,12 @@ env:
 permissions:
   contents: read
 
-concurrency:
-  group: oxford-rss-publisher
-  cancel-in-progress: false
-
 jobs:
   process-feeds:
+    # Materialize jobs before queueing, and keep previews out of the publishing queue.
+    concurrency:
+      group: oxford-news-${{ github.event.inputs.dry_run == 'true' && 'preview' || 'publisher' }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 45
     
