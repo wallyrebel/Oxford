@@ -82,7 +82,7 @@ jobs:
           OPENAI_CHECK_MODEL: ${{ vars.OPENAI_CHECK_MODEL || 'gpt-5.4-mini' }}
           TARGET_MIN_WORDS: ${{ vars.TARGET_MIN_WORDS || '200' }}
           DRY_RUN: ${{ github.event_name == 'push' && 'true' || github.event.inputs.dry_run || 'false' }}
-          SINGLE_FEED: ${{ github.event_name == 'push' && 'Oxford News Feed 1' || github.event.inputs.single_feed }}
+          SINGLE_FEED: ${{ github.event.inputs.single_feed }}
           
           # WordPress
           WORDPRESS_BASE_URL: ${{ secrets.WORDPRESS_BASE_URL }}
@@ -116,6 +116,21 @@ jobs:
           fi
           
           python -m rss_to_wp run "${ARGS[@]}"
+
+      - name: Verify Pexels fallback access without uploading media
+        if: github.event_name == 'push'
+        env:
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+        run: |
+          python - <<'PY'
+          import os
+          from rss_to_wp.images.pexels import PexelsClient
+          key = os.environ.get('PEXELS_API_KEY')
+          assert key, 'Pexels key missing'
+          image = PexelsClient(key).search('community park', per_page=1)
+          assert image and image.get('url'), 'Pexels search failed'
+          print('Pexels authenticated search succeeded; no media uploaded or article published.')
+          PY
 
       - name: Save database to cache
         if: always() && github.event_name != 'push' && github.event.inputs.dry_run != 'true'
