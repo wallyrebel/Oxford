@@ -16,51 +16,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Cancel the three identified stalled runs
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const repository = {owner: 'wallyrebel', repo: 'Oxford'};
-            const ids = [32211075644, 34287895109, 34288861761];
-            for (const run_id of ids) {
-              const {data: run} = await github.rest.actions.getWorkflowRun({...repository, run_id});
-              if (run.workflow_id !== 224281230) throw new Error('Unexpected workflow');
-              if (run.status === 'completed') {
-                core.info(`${run_id}: already ${run.conclusion}`);
-                continue;
-              }
-              let result;
-              try {
-                result = await github.rest.actions.cancelWorkflowRun({...repository, run_id});
-                core.info(`${run_id}: normal cancellation HTTP ${result.status}`);
-              } catch (error) {
-                if (error.status !== 409) throw error;
-                core.warning(`${run_id}: normal cancellation HTTP 409: ${error.message}`);
-              }
-              await new Promise(resolve => setTimeout(resolve, 3000));
-              const {data: current} = await github.rest.actions.getWorkflowRun({...repository, run_id});
-              if (current.status !== 'completed') {
-                try {
-                  result = await github.request('POST /repos/{owner}/{repo}/actions/runs/{run_id}/force-cancel', {...repository, run_id});
-                  core.info(`${run_id}: force cancellation HTTP ${result.status}`);
-                } catch (error) {
-                  core.warning(`${run_id}: force cancellation HTTP ${error.status}: ${error.message}`);
-                }
-              }
-              const {data: after} = await github.rest.actions.getWorkflowRun({...repository, run_id});
-              await core.summary.addRaw(`Run ${run_id}: ${after.status}, ${after.conclusion || 'no conclusion'}\n`, true).write();
-            }
-      - name: Refresh and restore the existing 15-minute schedule
-        if: always()
+      - name: Dispatch an Oxford test through the supported API
         uses: actions/github-script@v7
         with:
           script: |
             const workflow = {owner: 'wallyrebel', repo: 'Oxford', workflow_id: 224281230};
-            try {
-              await github.rest.actions.disableWorkflow(workflow);
-            } finally {
-              await github.rest.actions.enableWorkflow(workflow);
-            }
-            const {data} = await github.rest.actions.getWorkflow(workflow);
-            await core.summary.addRaw(`Publisher workflow: ${data.state}\n`, true).write();
-            if (data.state !== 'active') throw new Error('Publisher was not re-enabled');
+            const {data: state} = await github.rest.actions.getWorkflow(workflow);
+            if (state.state !== 'active') throw new Error('Publisher is not active');
+            const result = await github.rest.actions.createWorkflowDispatch({
+              ...workflow, ref: 'main', inputs: {dry_run: 'true', single_feed: 'OxfordNewsFeed1'}
+            });
+            core.info(`Dispatch HTTP ${result.status}`);
+            await core.summary.addRaw(JSON.stringify(result.data) + '\n', true).write();
