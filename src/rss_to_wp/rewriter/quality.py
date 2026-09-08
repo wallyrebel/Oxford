@@ -63,6 +63,14 @@ def source_fingerprint(title: str, content: str) -> str:
     return hashlib.sha256(normalized(title + " " + plain_text(content)).encode()).hexdigest()
 
 
+def numeric_details(text: str) -> set[str]:
+    # Preserve the value when AP style changes "7th" to "7" or "1,000" to "1000".
+    return {
+        re.sub(r"(?:st|nd|rd|th)$", "", n, flags=re.I).replace(",", "")
+        for n in re.findall(r"(?<!\w)\d+(?:[.,:]\d+)*(?:st|nd|rd|th)?(?!\w)", text, re.I)
+    }
+
+
 def source_context(url: str, configured: str = "") -> str:
     """Only expand publisher identities verified by an editor, never an ambiguous acronym."""
     parts = urlsplit(url)
@@ -97,8 +105,7 @@ def validate_draft(draft: dict, source: str, context: str = "") -> dict:
     ):
         raise EditorialSkipError("wrong_school_district")
     # The model checker also checks names, spelled-out numbers, dates and attribution.
-    allowed_numbers = set(re.findall(r"\b\d+(?:[.,:]\d+)*\b", source))
-    if set(re.findall(r"\b\d+(?:[.,:]\d+)*\b", combined)) - allowed_numbers:
+    if numeric_details(combined) - numeric_details(source):
         raise EditorialSkipError("unsupported_numeric_detail")
     for quote in re.findall(r'[“"]([^“”"]{12,})[”"]', combined):
         if normalized(quote) not in normalized(source):

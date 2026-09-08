@@ -487,6 +487,9 @@ def process_entry(
         logger.info(
             "dry_run_would_publish",
             headline=rewritten["headline"][:50],
+            excerpt=rewritten["excerpt"],
+            body=rewritten["body"],
+            source=link,
             body_length=len(rewritten["body"]),
             has_image=featured_media_id is not None or image_result is not None,
             category=feed_config.default_category,

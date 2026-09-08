@@ -86,6 +86,10 @@ def test_real_phone_outage_is_not_a_placeholder():
     )
 
 
+def test_ordinal_dates_can_be_written_in_ap_style():
+    assert validate_draft(DRAFT, SOURCE.replace("7 for", "7th for"), "Oxford School District")
+
+
 def test_short_factual_notice_passes_all_three_stages():
     obj = rewriter([facts(), DRAFT, {"approved": True, "issues": []}])
     result = obj.rewrite(SOURCE, TITLE, source_url=LINK)
