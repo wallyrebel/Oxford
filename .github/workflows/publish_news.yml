@@ -21,7 +21,7 @@ on:
           - 'true'
           - 'false'
       single_feed:
-        description: 'Process only a specific feed (by name)'
+        description: 'Exact feed name, e.g. Oxford News Feed 1; blank checks all feeds'
         required: false
         default: ''
         type: string
@@ -82,7 +82,7 @@ jobs:
           OPENAI_CHECK_MODEL: ${{ vars.OPENAI_CHECK_MODEL || 'gpt-5.4-mini' }}
           TARGET_MIN_WORDS: ${{ vars.TARGET_MIN_WORDS || '200' }}
           DRY_RUN: ${{ github.event_name == 'push' && 'true' || github.event.inputs.dry_run || 'false' }}
-          SINGLE_FEED: ${{ github.event_name == 'push' && 'OxfordNewsFeed1' || github.event.inputs.single_feed }}
+          SINGLE_FEED: ${{ github.event_name == 'push' && 'Oxford News Feed 1' || github.event.inputs.single_feed }}
           
           # WordPress
           WORDPRESS_BASE_URL: ${{ secrets.WORDPRESS_BASE_URL }}
