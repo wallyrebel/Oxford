@@ -1,4 +1,4 @@
-name: RSS to WordPress Automation
+name: Oxford News Publisher
 
 on:
   schedule:
