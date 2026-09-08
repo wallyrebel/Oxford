@@ -130,11 +130,14 @@ jobs:
 
       - name: Summary
         if: always()
+        env:
+          SUMMARY_DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          SUMMARY_SINGLE_FEED: ${{ github.event.inputs.single_feed || 'All feeds' }}
         run: |
           echo "## RSS to WordPress Run Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Dry Run**: ${{ github.event.inputs.dry_run || 'false' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Single Feed**: ${{ github.event.inputs.single_feed || 'All feeds' }}" >> $GITHUB_STEP_SUMMARY
+          printf '%s\n' "- **Dry Run**: $SUMMARY_DRY_RUN" >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' "- **Single Feed**: $SUMMARY_SINGLE_FEED" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> $GITHUB_STEP_SUMMARY
           
           if [ -f data/processed.db ]; then
