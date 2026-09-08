@@ -78,6 +78,8 @@ Avoid 'today', 'tomorrow' and 'this week' unless their current meaning is verifi
 Otherwise report the announcement in neutral past tense without inventing a date.
 If revision_notes are supplied, correct or remove the identified claims using only
 the original evidence. The notes are not evidence of new facts.
+Do not describe the post's emojis, hashtags or formatting, or say what information
+the source did not provide. Omit those filler sentences entirely.
 Aim for the requested soft minimum when there are enough distinct supported facts.
 Use all useful source details and sensible structure to write a fuller article when
 possible. Shorter is correct for a short notice. Never pad, repeat facts or invent facts
@@ -208,7 +210,17 @@ class OpenAIRewriter:
         for attempt in range(2):
             if use_original_title:
                 draft["headline"] = original_title
-            article = validate_draft(draft, original_title + " " + text, context)
+            try:
+                article = validate_draft(draft, original_title + " " + text, context)
+            except EditorialSkipError as error:
+                if attempt == 1:
+                    raise
+                draft = self._call(
+                    "revise_article", self.model, WRITE_PROMPT,
+                    {**payload, "previous_draft": draft, "revision_notes": [str(error)]},
+                    DRAFT_SCHEMA,
+                )
+                continue
             check = self._call(
                 "check_article",
                 self.check_model,
