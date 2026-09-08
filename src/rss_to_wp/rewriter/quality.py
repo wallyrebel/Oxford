@@ -97,8 +97,10 @@ def validate_draft(draft: dict, source: str, context: str = "") -> dict:
     if UNAVAILABLE.search(combined):
         raise EditorialSkipError("placeholder_in_draft")
     if re.search(
-        r"\b(?:post|source|announcement|release|notice)\s+(?:did not|does not|didn't|doesn't)"
-        r"\s+(?:provide|specify|include|give|offer|state|identify)\b", combined, re.I
+        r"\b(?:did not|does not|has not|have not|didn['’]t|doesn['’]t)"
+        r"\s+(?:provide|specify|include|give|offer|state|identify|release|announce)\b"
+        r"[^.!?]{0,140}\b(?:details?|information|dates?|times?|locations?|names?)\b"
+        r"|\bno (?:additional|further|other) (?:details|information)\b", combined, re.I
     ):
         raise EditorialSkipError("source_absence_filler")
     if len(draft["headline"]) > 180 or len(draft["excerpt"]) > 450:

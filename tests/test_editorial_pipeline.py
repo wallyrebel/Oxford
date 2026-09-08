@@ -123,6 +123,8 @@ def test_extractor_cannot_invent_its_evidence():
         ({"paragraphs": ["<script>alert(1)</script>"]}, "markup_in_plain_text"),
         ({"paragraphs": ["The district announced a closure."] * 2}, "repeated_paragraph"),
         ({"paragraphs": ["The post did not provide additional details."]}, "source_absence_filler"),
+        ({"paragraphs": ["The district did not provide additional details about the threshold."]}, "source_absence_filler"),
+        ({"paragraphs": ["No further details were available."]}, "source_absence_filler"),
     ],
 )
 def test_known_hallucinations_and_unsafe_output_are_blocked(change, reason):
