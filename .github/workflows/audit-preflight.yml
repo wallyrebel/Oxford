@@ -1,0 +1,33 @@
+name: Read-only audit correction preflight 2026-10-13
+on:
+  push:
+    branches: ['codex/audit-2026-10-13-review']
+    paths: ['scripts/audit_preflight.py', 'tests/test_audit_preflight.py', 'review/audit-2026-10-13.json', '.github/workflows/audit-preflight.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: oxford-news-publisher
+  cancel-in-progress: false
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m unittest discover -s tests -p test_audit_preflight.py -v
+      - name: Read exact target posts using existing managed credentials
+        env:
+          WORDPRESS_BASE_URL: ${{ secrets.WORDPRESS_BASE_URL }}
+          WORDPRESS_USERNAME: ${{ secrets.WORDPRESS_USERNAME }}
+          WORDPRESS_APP_PASSWORD: ${{ secrets.WORDPRESS_APP_PASSWORD }}
+        run: python scripts/audit_preflight.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: audit-2026-10-13-preflight
+          path: data/audit-preflight.json
+          retention-days: 14

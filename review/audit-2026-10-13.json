@@ -1,0 +1,31 @@
+{
+  "site": "https://oxfordmsnews.com",
+  "repository": "wallyrebel/Oxford",
+  "mode": "read-only",
+  "posts": [
+    {
+      "id": 5218,
+      "link": "https://oxfordmsnews.com/lafayette-county-news/lafayette-county-sheriffs-office-asks-community-to-support-chuck-jenkins-through-fundraiser/",
+      "rendered_sha256": {
+        "title": "dc3810a4fa2e91184b148b7a9e7f4fe1fe5bf93ffc58a1bf02f5150ed167d45f",
+        "excerpt": "80070b77dec9405e32688669e0ded36833dd4a3c901af674eba50597cb29fdf8",
+        "content": "6b05eee7625e82d4a6b1fea54e24a4e4c1e3953e0e4d27d5155795bcbffc7635"
+      },
+      "replacements": {},
+      "sources": [],
+      "note": "Preserve duplicate URLs/statuses. No mutation proposed pending separate consolidation/expansion review."
+    },
+    {
+      "id": 5220,
+      "link": "https://oxfordmsnews.com/lafayette-county-news/lafayette-county-sheriffs-office-asks-community-to-support-chuck-jenkins-through-fundraiser-2/",
+      "rendered_sha256": {
+        "title": "dc3810a4fa2e91184b148b7a9e7f4fe1fe5bf93ffc58a1bf02f5150ed167d45f",
+        "excerpt": "015ab5538fea18f9a9551e8980fffd721daf2949b20316f9f5333c12f105af5d",
+        "content": "71d1682120e5a16d551c5992d7889ae9a4900335e3d0cb45f73f61a4d62f039c"
+      },
+      "replacements": {},
+      "sources": [],
+      "note": "Preserve duplicate URLs/statuses. No mutation proposed pending separate consolidation/expansion review."
+    }
+  ]
+}
