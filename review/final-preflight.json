@@ -1,0 +1,126 @@
+{
+  "site": "https://oxfordmsnews.com",
+  "mode": "read-only",
+  "verified": true,
+  "posts": [
+    {
+      "id": 5218,
+      "url": "https://oxfordmsnews.com/lafayette-county-news/lafayette-county-sheriffs-office-asks-community-to-support-chuck-jenkins-through-fundraiser/",
+      "before": {
+        "id": 5218,
+        "link": "https://oxfordmsnews.com/lafayette-county-news/lafayette-county-sheriffs-office-asks-community-to-support-chuck-jenkins-through-fundraiser/",
+        "slug": "lafayette-county-sheriffs-office-asks-community-to-support-chuck-jenkins-through-fundraiser",
+        "status": "publish",
+        "date": "2026-10-11T20:09:25",
+        "date_gmt": "2026-10-12T01:09:25",
+        "modified": "2026-10-11T20:09:25",
+        "modified_gmt": "2026-10-12T01:09:25",
+        "author": 2,
+        "categories": [
+          6
+        ],
+        "tags": [
+          91,
+          87
+        ],
+        "featured_media": 5217,
+        "title": {
+          "raw": "Lafayette County Sheriff’s Office asks community to support Chuck Jenkins through fundraiser",
+          "rendered": "Lafayette County Sheriff’s Office asks community to support Chuck Jenkins through fundraiser"
+        },
+        "excerpt": {
+          "raw": "The Lafayette County Sheriff’s Office is asking the Lafayette-Oxford-University community, law enforcement officers, friends and family to support Chuck Jenkins through a fundraiser.",
+          "rendered": "<p>The Lafayette County Sheriff’s Office is asking the Lafayette-Oxford-University community, law enforcement officers, friends and family to support Chuck Jenkins through a fundraiser.</p>\n"
+        },
+        "content": {
+          "raw": "<p>The Lafayette County Sheriff’s Office is asking the Lafayette-Oxford-University community to support Chuck Jenkins through a fundraiser, according to a post on the office’s Facebook page.</p>\n<p>Jenkins has spent years serving the Lafayette-Oxford-University community through his career in law enforcement, the post said. Most recently, he served as academy director of the Lafayette County Law Enforcement Officers Training Academy, where he helped prepare and train the next generation of law enforcement officers.</p>\n<p>The post invited community members, fellow law enforcement officers, friends and family to contribute to the fundraiser. It said contributions of any amount are appreciated and that people who are unable to donate can support Jenkins by sharing the post.</p>\n\n<p><em>Source: <a href=\"https://www.facebook.com/426605489668757/posts/1415122827483680\" target=\"_blank\" rel=\"noopener\">Original source announcement</a></em></p>",
+          "rendered": "<p>The Lafayette County Sheriff’s Office is asking the Lafayette-Oxford-University community to support Chuck Jenkins through a fundraiser, according to a post on the office’s Facebook page.</p>\n<p>Jenkins has spent years serving the Lafayette-Oxford-University community through his career in law enforcement, the post said. Most recently, he served as academy director of the Lafayette County Law Enforcement Officers Training Academy, where he helped prepare and train the next generation of law enforcement officers.</p>\n<p>The post invited community members, fellow law enforcement officers, friends and family to contribute to the fundraiser. It said contributions of any amount are appreciated and that people who are unable to donate can support Jenkins by sharing the post.</p>\n<p><em>Source: <a href=\"https://www.facebook.com/426605489668757/posts/1415122827483680\" target=\"_blank\" rel=\"noopener\">Original source announcement</a></em></p>\n"
+        },
+        "meta": {
+          "_seopress_titles_title": "",
+          "_seopress_titles_desc": "",
+          "_seopress_social_fb_title": "",
+          "_seopress_social_fb_desc": "",
+          "_seopress_social_twitter_title": "",
+          "_seopress_social_twitter_desc": ""
+        }
+      },
+      "before_sha256": "fcae077efe865372b9bfc978bc6a0686ab8d285776ba0737902994139ea4380f",
+      "capability": {
+        "account_id": 2,
+        "post_author_id": 2,
+        "owned_by_account": true,
+        "eligible_from_capabilities": true,
+        "write_verified": false
+      },
+      "ready": true,
+      "payload": {},
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "proposed_sha256": "fcae077efe865372b9bfc978bc6a0686ab8d285776ba0737902994139ea4380f"
+    },
+    {
+      "id": 5220,
+      "url": "https://oxfordmsnews.com/lafayette-county-news/lafayette-county-sheriffs-office-asks-community-to-support-chuck-jenkins-through-fundraiser-2/",
+      "before": {
+        "id": 5220,
+        "link": "https://oxfordmsnews.com/lafayette-county-news/lafayette-county-sheriffs-office-asks-community-to-support-chuck-jenkins-through-fundraiser-2/",
+        "slug": "lafayette-county-sheriffs-office-asks-community-to-support-chuck-jenkins-through-fundraiser-2",
+        "status": "publish",
+        "date": "2026-10-11T20:09:36",
+        "date_gmt": "2026-10-12T01:09:36",
+        "modified": "2026-10-11T20:09:36",
+        "modified_gmt": "2026-10-12T01:09:36",
+        "author": 2,
+        "categories": [
+          6
+        ],
+        "tags": [
+          91,
+          87
+        ],
+        "featured_media": 5219,
+        "title": {
+          "raw": "Lafayette County Sheriff’s Office asks community to support Chuck Jenkins through fundraiser",
+          "rendered": "Lafayette County Sheriff’s Office asks community to support Chuck Jenkins through fundraiser"
+        },
+        "excerpt": {
+          "raw": "The Lafayette County Sheriff’s Office is inviting the Lafayette-Oxford-University community, law enforcement officers, friends and family to support Chuck Jenkins through a fundraiser.",
+          "rendered": "<p>The Lafayette County Sheriff’s Office is inviting the Lafayette-Oxford-University community, law enforcement officers, friends and family to support Chuck Jenkins through a fundraiser.</p>\n"
+        },
+        "content": {
+          "raw": "<p>The Lafayette County Sheriff’s Office is asking the Lafayette-Oxford-University community to support Chuck Jenkins through a fundraiser.</p>\n<p>According to a post from the sheriff’s office, Jenkins has spent years serving the Lafayette-Oxford-University community through his law enforcement career. Most recently, he served as academy director of the Lafayette County Law Enforcement Officers Training Academy, where he helped prepare and train the next generation of law enforcement officers.</p>\n<p>The post invited community members, fellow law enforcement officers, friends and family to contribute to the fundraiser. It said every contribution, regardless of the amount, is appreciated.</p>\n<p>The sheriff’s office also said people who are unable to contribute can support Jenkins by sharing the fundraiser post.</p>\n\n<p><em>Source: <a href=\"https://www.facebook.com/426605489668757/posts/1415122680817028\" target=\"_blank\" rel=\"noopener\">Original source announcement</a></em></p>",
+          "rendered": "<p>The Lafayette County Sheriff’s Office is asking the Lafayette-Oxford-University community to support Chuck Jenkins through a fundraiser.</p>\n<p>According to a post from the sheriff’s office, Jenkins has spent years serving the Lafayette-Oxford-University community through his law enforcement career. Most recently, he served as academy director of the Lafayette County Law Enforcement Officers Training Academy, where he helped prepare and train the next generation of law enforcement officers.</p>\n<p>The post invited community members, fellow law enforcement officers, friends and family to contribute to the fundraiser. It said every contribution, regardless of the amount, is appreciated.</p>\n<p>The sheriff’s office also said people who are unable to contribute can support Jenkins by sharing the fundraiser post.</p>\n<p><em>Source: <a href=\"https://www.facebook.com/426605489668757/posts/1415122680817028\" target=\"_blank\" rel=\"noopener\">Original source announcement</a></em></p>\n"
+        },
+        "meta": {
+          "_seopress_titles_title": "",
+          "_seopress_titles_desc": "",
+          "_seopress_social_fb_title": "",
+          "_seopress_social_fb_desc": "",
+          "_seopress_social_twitter_title": "",
+          "_seopress_social_twitter_desc": ""
+        }
+      },
+      "before_sha256": "1aea861df6218c0a814c8016b3b41cf56fec8c4da7261f966f50bda97cb6be08",
+      "capability": {
+        "account_id": 2,
+        "post_author_id": 2,
+        "owned_by_account": true,
+        "eligible_from_capabilities": true,
+        "write_verified": false
+      },
+      "ready": true,
+      "payload": {},
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "proposed_sha256": "1aea861df6218c0a814c8016b3b41cf56fec8c4da7261f966f50bda97cb6be08"
+    }
+  ],
+  "account": {
+    "id": 2,
+    "capabilities": {
+      "edit_posts": true,
+      "edit_published_posts": true,
+      "edit_others_posts": true,
+      "upload_files": true
+    }
+  }
+}
