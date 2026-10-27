@@ -3,7 +3,7 @@
 import json
 from datetime import datetime, timezone
 
-from rss_to_wp.rewriter.model_options import chat_model_params, resolve_retired_model
+from rss_to_wp.rewriter.model_options import create_model_completion, resolve_retired_model
 
 from openai import OpenAI
 
@@ -151,7 +151,7 @@ class OpenAIRewriter:
             params["reasoning_effort"] = "minimal"
         else:
             params["temperature"] = 0
-        response = self.client.chat.completions.create(**chat_model_params(params))
+        response = create_model_completion(self.client, params)
         choice = response.choices[0]
         if choice.finish_reason != "stop" or choice.message.refusal or not choice.message.content:
             raise RuntimeError(f"{stage}: incomplete or refused model response")
