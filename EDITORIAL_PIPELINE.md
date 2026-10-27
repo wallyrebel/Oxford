@@ -7,11 +7,11 @@ invent background, quotes, future updates, dates, district names or reopening da
 
 | Stage | Default model | Input / output price per million tokens |
 |---|---|---|
-| Extract facts and verbatim supporting evidence | `gpt-6-luna` | $0.10 / $0.40 |
+| Extract facts and verbatim supporting evidence | `gpt-6-luna` | $0.10 / $0.50 |
 | Write the headline, excerpt and article | `gpt-5.6-luna` | $0.20 / $1.20 |
 | Independently compare every claim with the original source | `gpt-5.4-mini` | $0.75 / $4.50 |
 
-Prices checked against [nano](https://developers.openai.com/api/docs/models/gpt-6-luna),
+Prices checked against [GPT-6 Luna](https://developers.openai.com/api/docs/models/gpt-6-luna),
 [Luna](https://developers.openai.com/api/docs/models/gpt-5.6-luna) and
 [mini](https://developers.openai.com/api/docs/models/gpt-5.4-mini) documentation.
 An illustrative article using 1,400/300 extraction tokens, 2,200/650 rewrite tokens
