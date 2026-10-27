@@ -1,0 +1,45 @@
+name: Isolated model compatibility verification
+on:
+  push:
+    branches: [verify-retired-model-replacement]
+    paths: ['.github/workflows/verify_model_replacement.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install tested SDK and offline test dependencies
+        run: pip install -r requirements.txt pytest
+      - name: Offline replacement and editorial regression tests
+        env:
+          PYTHONPATH: src:.
+        run: python -m pytest -q
+      - name: Verify model access and bounded output with existing managed key
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from openai import OpenAI
+          client=OpenAI(api_key=os.environ['OPENAI_API_KEY'], timeout=60, max_retries=0)
+          model=client.models.retrieve('gpt-6-luna')
+          assert getattr(model, 'shutdown_date', None) is None, 'Unexpected model shutdown notice'
+          schema={'type':'object','properties':{'headline':{'type':'string'},'body':{'type':'string'}},'required':['headline','body'],'additionalProperties':False}
+          for response_format in [{'type':'json_object'}, {'type':'json_schema','json_schema':{'name':'article','strict':True,'schema':schema}}]:
+              response=client.chat.completions.create(model='gpt-6-luna', reasoning_effort='none', max_completion_tokens=2000, store=False,
+                  response_format=response_format,
+                  messages=[{'role':'system','content':'Write factual JSON with only headline and body, wrapping body paragraphs in HTML p tags. Do not add facts.'},
+                            {'role':'user','content':'County officials reopened Main Street after crews completed bridge repairs. The road is open to traffic.'}])
+              choice=response.choices[0]
+              assert choice.finish_reason=='stop' and not choice.message.refusal, 'Incomplete/refused output'
+              result=json.loads(choice.message.content)
+              assert result.get('headline') and result.get('body') and '<p>' in result['body'], 'Invalid article output'
+              usage=response.usage
+              print(json.dumps({'model':response.model,'format':response_format['type'],'valid':True,'input_tokens':usage.prompt_tokens,'output_tokens':usage.completion_tokens,'reasoning_tokens':getattr(usage.completion_tokens_details,'reasoning_tokens',None),'shutdown_date':getattr(model,'shutdown_date',None)}))
+          PY
