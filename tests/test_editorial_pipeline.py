@@ -95,7 +95,7 @@ def test_short_factual_notice_passes_all_three_stages():
     result = obj.rewrite(SOURCE, TITLE, source_url=LINK)
     assert result["body"].startswith("<p>Oxford School District")
     calls = obj.client.chat.completions.create.call_args_list
-    assert [c.kwargs["model"] for c in calls] == ["gpt-4.1-nano", "gpt-5.6-luna", "gpt-5.4-mini"]
+    assert [c.kwargs["model"] for c in calls] == ["gpt-6-luna", "gpt-5.6-luna", "gpt-5.4-mini"]
     assert all("max_completion_tokens" in c.kwargs and "max_tokens" not in c.kwargs for c in calls)
     assert "temperature" not in calls[1].kwargs
     assert SOURCE in calls[2].kwargs["messages"][1]["content"]

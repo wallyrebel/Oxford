@@ -73,7 +73,7 @@ jobs:
         env:
           # OpenAI
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_EXTRACTION_MODEL: ${{ vars.OPENAI_EXTRACTION_MODEL || 'gpt-4.1-nano' }}
+          OPENAI_EXTRACTION_MODEL: ${{ vars.OPENAI_EXTRACTION_MODEL || 'gpt-6-luna' }}
           OPENAI_MODEL: ${{ vars.OPENAI_REWRITE_MODEL || 'gpt-5.6-luna' }}
           OPENAI_CHECK_MODEL: ${{ vars.OPENAI_CHECK_MODEL || 'gpt-5.4-mini' }}
           TARGET_MIN_WORDS: ${{ vars.TARGET_MIN_WORDS || '200' }}

@@ -52,7 +52,7 @@ class AppSettings(BaseSettings):
     # OpenAI
     openai_api_key: str = Field(..., description="OpenAI API key")
     openai_model: str = Field(default="gpt-5.6-luna", description="Rewrite model")
-    openai_extraction_model: str = "gpt-4.1-nano"
+    openai_extraction_model: str = "gpt-6-luna"
     openai_check_model: str = "gpt-5.4-mini"
     target_min_words: int = Field(default=200, ge=0, le=800)
 
