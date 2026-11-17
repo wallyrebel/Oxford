@@ -50,7 +50,7 @@ def university_news():
         paragraphs = [node.get_text(" ", strip=True) for node in body.select("p, li")]
         entries.append(feedparser.FeedParserDict(title=title.get_text(" ", strip=True),
                        link=url, published=stamp.isoformat(), summary="\n\n".join(paragraphs)))
-    return feedparser.FeedParserDict(entries=entries, feed={"title": "University of Mississippi News"})
+    return feedparser.FeedParserDict(bozo=False, entries=entries, feed={"title": "University of Mississippi News"})
 
 def parse_feed(url: str) -> Optional[dict[str, Any]]:
     """Parse an RSS/Atom feed from URL.
