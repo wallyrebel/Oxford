@@ -1,5 +1,11 @@
 # Oxford MS News: verified source identities; URLs and feed names preserved.
 feeds:
+- name: University of Mississippi News
+  url: https://olemiss.edu/news/
+  default_category: Oxford News
+  default_tags: [University of Mississippi]
+  max_per_run: 2
+  publisher_context: University of Mississippi official newsroom. Attribute the university's reporting and distinguish the Oxford campus from other campuses.
 - name: Oxford News Feed 1
   url: https://fetchrss.com/feed/1vcaujD2G3c21vgmxPFFOAAU.rss
   default_category: Oxford News

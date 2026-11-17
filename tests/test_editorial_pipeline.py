@@ -325,8 +325,11 @@ def test_source_url_tracking_and_escaped_query_deduplication():
 
 def test_feed_configuration_has_categories_tags_and_respects_enabled():
     feeds = load_feeds_config("feeds.yaml").feeds
-    assert len(feeds) == 8
-    assert all(f.default_category and f.default_tags and f.max_per_run == 5 for f in feeds)
+    social = [f for f in feeds if f.name.startswith("Oxford News Feed ")]
+    assert len(social) == 8 and all(f.max_per_run == 5 for f in social)
+    university = next(f for f in feeds if f.url == "https://olemiss.edu/news/")
+    assert university.max_per_run == 2
+    assert all(f.default_category and f.default_tags for f in feeds)
     assert (
         FeedConfig(name="Legacy", url="https://example.com", category="News", enabled=False).enabled
         is False
