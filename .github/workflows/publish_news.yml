@@ -84,7 +84,7 @@ jobs:
           WORDPRESS_BASE_URL: ${{ secrets.WORDPRESS_BASE_URL }}
           WORDPRESS_USERNAME: ${{ secrets.WORDPRESS_USERNAME }}
           WORDPRESS_APP_PASSWORD: ${{ secrets.WORDPRESS_APP_PASSWORD }}
-          WORDPRESS_POST_STATUS: ${{ secrets.WORDPRESS_POST_STATUS || 'publish' }}
+          WORDPRESS_POST_STATUS: publish
           
           # Image providers (optional)
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
