@@ -105,10 +105,19 @@ def test_short_factual_notice_passes_all_three_stages():
 def test_extractor_cannot_invent_its_evidence():
     extraction = facts()
     extraction["facts"][0]["evidence"] = "School will reopen on Sept. 8."
-    obj = rewriter([extraction])
+    obj = rewriter([extraction, extraction])
     with pytest.raises(EditorialSkipError, match="evidence_not_in_source"):
         obj.rewrite(SOURCE, TITLE)
-    assert obj.client.chat.completions.create.call_count == 1
+    assert obj.client.chat.completions.create.call_count == 2
+
+
+def test_repaired_evidence_still_requires_independent_article_approval():
+    bad = facts()
+    bad["facts"][0]["evidence"] = "Unverified reopening date"
+    obj = rewriter([bad, facts(), DRAFT, {"approved": True, "issues": []}])
+    result = obj.rewrite(SOURCE, TITLE, source_url=LINK)
+    assert result["headline"] == DRAFT["headline"]
+    assert obj.client.chat.completions.create.call_count == 4
 
 
 @pytest.mark.parametrize(

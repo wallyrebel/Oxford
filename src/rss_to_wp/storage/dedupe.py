@@ -153,7 +153,10 @@ class DedupeStore:
         with self._get_connection() as conn:
             return (
                 conn.execute(
-                    "SELECT 1 FROM rejected_entries WHERE entry_key = ? AND fingerprint = ?",
+                    # The old extractor never had a second chance to copy the source.
+                    # All editorial verdicts and failures of the repaired extractor stay cached.
+                    "SELECT 1 FROM rejected_entries WHERE entry_key = ? AND fingerprint = ? "
+                    "AND reason != 'extraction_evidence_not_in_source'",
                     (entry_key, fingerprint),
                 ).fetchone()
                 is not None

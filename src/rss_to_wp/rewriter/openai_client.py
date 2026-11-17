@@ -187,25 +187,31 @@ class OpenAIRewriter:
             "rss_timestamp_not_event_date": source_date,
             "checked_at_utc": datetime.now(timezone.utc).isoformat(),
         }
-        extracted = self._call(
-            "extract_facts", self.extraction_model, EXTRACT_PROMPT, source, FACTS_SCHEMA
-        )
-        if extracted.get("usable") is not True or not extracted.get("facts"):
-            raise EditorialSkipError(
-                "extraction_rejected: " + str(extracted.get("reason", "no facts"))[:300]
+        evidence_fields = [normalized(value) for value in (original_title, text, context)]
+        instructions = EXTRACT_PROMPT
+        for attempt in range(2):
+            extracted = self._call(
+                "extract_facts", self.extraction_model, instructions, source, FACTS_SCHEMA
             )
-        evidence_source = original_title + " " + text + " " + context
-        for fact in extracted["facts"]:
-            if (
-                not isinstance(fact, dict)
-                or not isinstance(fact.get("fact"), str)
-                or not isinstance(fact.get("evidence"), str)
-            ):
-                raise EditorialSkipError("invalid_extracted_fact")
-            if len(fact["evidence"].strip()) < 8 or normalized(fact["evidence"]) not in normalized(
-                evidence_source
-            ):
-                raise EditorialSkipError("extraction_evidence_not_in_source")
+            if extracted.get("usable") is not True or not extracted.get("facts"):
+                raise EditorialSkipError(
+                    "extraction_rejected: " + str(extracted.get("reason", "no facts"))[:300]
+                )
+            evidence_valid = True
+            for fact in extracted["facts"]:
+                if not isinstance(fact, dict) or not isinstance(fact.get("fact"), str) or not isinstance(fact.get("evidence"), str):
+                    raise EditorialSkipError("invalid_extracted_fact")
+                excerpt = normalized(fact["evidence"])
+                if len(excerpt) < 8 or not any(excerpt in field for field in evidence_fields):
+                    evidence_valid = False
+                    break
+            if evidence_valid:
+                break
+            if attempt:
+                raise EditorialSkipError("extraction_evidence_not_in_source_after_retry")
+            instructions += (" Your previous extraction failed the exact excerpt check. Start again with the original source. "
+                             "Copy a continuous phrase from one input field for each fact. Omit facts you cannot quote. "
+                             "Do not combine fragments or use ellipses, and do not add quotation marks around the excerpt.")
         payload = {
             **source,
             "extracted_facts": extracted["facts"],
