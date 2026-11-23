@@ -38,7 +38,8 @@ def oxford_blood_notices():
         if (link.scheme == "https" and link.netloc == "msblood.com" and entry.get("published")
                 and re.search(r"\bOxford\b", text, re.I)):
             entries.append(feedparser.FeedParserDict(title=entry.title, link=entry.link,
-                           id=entry.link, published=entry.published, summary=text))
+                           id=entry.link, published=entry.published,
+                           published_parsed=entry.get("published_parsed"), summary=text))
     return feedparser.FeedParserDict(bozo=False, entries=entries, feed={"title":"Mississippi Blood Services"})
 
 
