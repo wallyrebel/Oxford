@@ -7,7 +7,7 @@ from typing import Any, Optional
 import feedparser
 import pendulum
 import re
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 import requests
 from bs4 import BeautifulSoup
@@ -17,6 +17,29 @@ from rss_to_wp.utils import get_logger
 logger = get_logger("feeds.parser")
 
 UNIVERSITY_NEWS = "https://olemiss.edu/news/"
+BLOOD_NEWS = "https://msblood.com/feed/"
+
+
+def oxford_blood_notices():
+    response = requests.get(BLOOD_NEWS, timeout=(5, 15), allow_redirects=False,
+                            headers={"User-Agent": "OxfordMSNews/1.0 (+https://oxfordmsnews.com/)",
+                                     "Accept-Encoding": "gzip, deflate"})
+    response.raise_for_status()
+    feed = feedparser.parse(response.content)
+    if response.status_code != 200 or not feed.version:
+        raise ValueError("Mississippi Blood Services feed unavailable")
+    entries = []
+    for entry in feed.entries:
+        link = urlsplit(entry.get("link", ""))
+        body = BeautifulSoup((entry.get("content") or [{}])[0].get("value", ""), "html.parser")
+        for tag in body.select("figure,img,script,style"):
+            tag.decompose()
+        text = body.get_text(" ", strip=True)
+        if (link.scheme == "https" and link.netloc == "msblood.com" and entry.get("published")
+                and re.search(r"\bOxford\b", text, re.I)):
+            entries.append(feedparser.FeedParserDict(title=entry.title, link=entry.link,
+                           id=entry.link, published=entry.published, summary=text))
+    return feedparser.FeedParserDict(bozo=False, entries=entries, feed={"title":"Mississippi Blood Services"})
 
 
 def university_page(url):
@@ -64,7 +87,12 @@ def parse_feed(url: str) -> Optional[dict[str, Any]]:
     logger.info("parsing_feed", url=url)
 
     try:
-        feed = university_news() if url == UNIVERSITY_NEWS else feedparser.parse(url)
+        if url == UNIVERSITY_NEWS:
+            feed = university_news()
+        elif url == BLOOD_NEWS:
+            feed = oxford_blood_notices()
+        else:
+            feed = feedparser.parse(url)
 
         # Check for parsing errors
         if feed.bozo and feed.bozo_exception:
