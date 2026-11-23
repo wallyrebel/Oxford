@@ -34,10 +34,18 @@ def oxford_blood_notices():
         body = BeautifulSoup((entry.get("content") or [{}])[0].get("value", ""), "html.parser")
         for tag in body.select("figure,img,script,style"):
             tag.decompose()
-        text = body.get_text(" ", strip=True)
+        center = next((p for p in body.select("p") if p.get_text(" ", strip=True).startswith("Oxford Donor Center ")
+                       and "Oxford, MS" in p.get_text(" ", strip=True)), None)
+        schedule = center.find_next_sibling() if center else None
         if (link.scheme == "https" and link.netloc == "msblood.com" and entry.get("published")
-                and re.search(r"\bOxford\b", text, re.I)):
-            entries.append(feedparser.FeedParserDict(title=entry.title, link=entry.link,
+                and schedule and schedule.name in {"ul", "ol"}):
+            hours = [li.get_text(" ", strip=True) for li in schedule.find_all("li", recursive=False)]
+            if not hours or not all(re.match(r"(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),", h) for h in hours):
+                continue
+            context = [p.get_text(" ", strip=True) for p in body.select("p")
+                       if re.search(r"critically needed|must collect approximately", p.get_text(" ", strip=True), re.I)]
+            text = "\n".join([center.get_text(" ", strip=True), *hours, *context])
+            entries.append(feedparser.FeedParserDict(title="Oxford donor center schedule: " + entry.title, link=entry.link,
                            id=entry.link, published=entry.published,
                            published_parsed=entry.get("published_parsed"), summary=text))
     return feedparser.FeedParserDict(bozo=False, entries=entries, feed={"title":"Mississippi Blood Services"})

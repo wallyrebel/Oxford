@@ -9,7 +9,9 @@ def test_blood_service_preserves_rss_publication_date(monkeypatch):
         content = b"""<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel>
         <item><title>Holiday hours</title><link>https://msblood.com/holiday/</link>
         <pubDate>Sun, 22 Nov 2026 12:00:06 +0000</pubDate>
-        <content:encoded>Oxford center hours</content:encoded></item></channel></rss>"""
+        <content:encoded><![CDATA[<p>Flowood Donor Center, Flowood, MS</p><ul><li>Wednesday, November 25: 7:30 AM</li></ul>
+        <p>Oxford Donor Center<br>2627 West Oxford Loop, Suite C, Oxford, MS</p>
+        <ul><li>Wednesday, November 25: 9 AM to 2:30 PM</li></ul><h3>Giveaway</h3>]]></content:encoded></item></channel></rss>"""
 
         def raise_for_status(self):
             pass
@@ -17,6 +19,7 @@ def test_blood_service_preserves_rss_publication_date(monkeypatch):
     monkeypatch.setattr(parser.requests, "get", lambda *args, **kwargs: Response())
     entry, = parser.parse_feed(parser.BLOOD_NEWS).entries
     assert parse_entry_date(entry).isoformat() == "2026-11-22T12:00:06+00:00"
+    assert "9 AM to 2:30 PM" in entry.summary and "Flowood" not in entry.summary and "Giveaway" not in entry.summary
 
 
 def test_newsroom_uses_live_feed_entry_point_and_only_release_text(monkeypatch):

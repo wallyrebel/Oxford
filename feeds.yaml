@@ -5,7 +5,7 @@ feeds:
   default_category: Oxford News
   default_tags: [Oxford, Mississippi Blood Services]
   max_per_run: 2
-  publisher_context: Mississippi Blood Services is the source. Report the Oxford center's dates, address and hours. Keep Flowood's schedule separate and attribute statewide supply figures to the organization.
+  publisher_context: Mississippi Blood Services is the source. Include its full Oxford street address and suite, the dated hours for each listed day including all closures, and which days are special openings. Attribute statewide supply figures to the organization.
 - name: University of Mississippi News
   url: https://olemiss.edu/news/
   default_category: Oxford News
