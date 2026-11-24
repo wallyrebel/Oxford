@@ -1,5 +1,11 @@
 # Oxford MS News: verified source identities; URLs and feed names preserved.
 feeds:
+- name: Oxford and Lafayette County verified public records
+  url: https://raw.githubusercontent.com/wallyrebel/MississippiNewsGroup/main/data/public-records/oxford.xml
+  default_category: Oxford News
+  default_tags: [Oxford, Lafayette County]
+  max_per_run: 3
+  publisher_context: Attribute each record to the original authority named in the item and use the dates and source links provided.
 - name: Mississippi Blood Services Oxford notices
   url: https://msblood.com/feed/
   default_category: Oxford News
