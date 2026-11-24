@@ -71,13 +71,17 @@ def numeric_details(text: str) -> set[str]:
     }
 
 
+CALENDAR_DATE = re.compile(
+    r"\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?"
+    r"|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
+    r"\.?\s+(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?\b(?![.:,]\d|\s*%)"
+    r"(?:,?\s+((?:19|20)\d{2})\b)?", re.I
+)
+
+
 def calendar_dates(text: str) -> set[tuple[str, int]]:
     """Retain explicit month/day facts even when spelling and ordinals change."""
-    return {(month[:3].lower(), int(day)) for month, day in re.findall(
-        r"\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?"
-        r"|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
-        r"\.?\s+(\d{1,2})(?:st|nd|rd|th)?\b", text, re.I
-    )}
+    return {(month[:3].lower(), int(day)) for month, day, _ in CALENDAR_DATE.findall(text)}
 
 
 def source_context(url: str, configured: str = "") -> str:
@@ -103,6 +107,11 @@ def validate_draft(draft: dict, source: str, context: str = "") -> dict:
     combined = " ".join([draft["headline"], draft["excerpt"], *paragraphs])
     if calendar_dates(source) - calendar_dates(combined):
         raise EditorialSkipError("omitted_source_calendar_date")
+    dated_source = {(m[:3].lower(), int(d), y) for m, d, y in CALENDAR_DATE.findall(source) if y}
+    dated_draft = {(m[:3].lower(), int(d), y) for m, d, y in CALENDAR_DATE.findall(combined) if y}
+    for year in {date[2] for date in dated_source}:
+        if not any(date[2] == year for date in dated_source & dated_draft):
+            raise EditorialSkipError(f"Retain {year} alongside an event date that gives that year in the source.")
     if re.search(r"<[^>]+>|```", combined):
         raise EditorialSkipError("markup_in_plain_text_draft")
     if UNAVAILABLE.search(combined):

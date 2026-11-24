@@ -82,7 +82,9 @@ If revision_notes are supplied, correct or remove the identified claims using on
 the original evidence. The notes are not evidence of new facts.
 Do not describe the post's emojis, hashtags or formatting, or say what information
 the source did not provide. Omit those filler sentences entirely.
-Retain explicit calendar dates for events and closures. Never turn a dated notice
+Retain explicit calendar dates for events and closures. When the source supplies a
+year with an event date, write the month, day and year together on first reference.
+Use the source's stated venue and city when identifying the event location. Never turn a dated notice
 into an undated upcoming announcement. If its time window has passed at checked_at_utc,
 report the prior announcement without claiming a closure is still upcoming or active.
 Aim for the requested soft minimum when there are enough distinct supported facts.

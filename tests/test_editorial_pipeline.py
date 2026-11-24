@@ -182,6 +182,21 @@ def test_calendar_date_spelling_and_ordinals_are_equivalent():
     assert calendar_dates("September 8th and January 1") == calendar_dates("Sept. 8 and Jan. 1st")
 
 
+def test_county_rates_are_not_mistaken_for_event_dates():
+    from rss_to_wp.rewriter.quality import calendar_dates
+    assert calendar_dates("June 3.2%, July 3%, August 2.6%. Updated Nov. 24.") == {("nov", 24)}
+
+
+def test_event_preserves_the_supplied_year_with_a_corresponding_date():
+    source = "Drop off Nov. 24, 2026. The walk is Nov. 26, 2026."
+    draft = {"headline": "Donation drop-off and walk", "excerpt": "Community calendar",
+             "paragraphs": ["Drop off Nov. 24. The walk is Nov. 26."]}
+    with pytest.raises(EditorialSkipError, match="Retain 2026"):
+        validate_draft(draft, source)
+    draft["paragraphs"] = ["Drop off Nov. 24, 2026. The walk is Nov. 26."]
+    assert validate_draft(draft, source)["headline"] == draft["headline"]
+
+
 def test_truncated_api_response_is_an_operational_failure():
     obj = rewriter([])
     obj.client.chat.completions.create.side_effect = None
