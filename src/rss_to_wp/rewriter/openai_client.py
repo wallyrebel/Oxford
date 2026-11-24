@@ -2,6 +2,7 @@
 
 import json
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 from rss_to_wp.rewriter.model_options import create_model_completion, resolve_retired_model
 
@@ -58,6 +59,8 @@ publication's location alone does not prove an event happened in Oxford.
 Expand an acronym only when it actually occurs in the source. Publisher context is
 not evidence that every named school or organization participated in the event.
 The source_url may establish the source platform (for example, a Facebook post).
+Use checked_at_oxford only to interpret timing in Oxford, Mississippi. Compare
+local event hours to this local clock. The check time is not the event time.
 """
 EXTRACT_PROMPT = BOUNDARY + """Extract only concrete facts supported by the ORIGINAL source.
 For each fact, evidence MUST be a verbatim, contiguous excerpt from original_title,
@@ -181,13 +184,15 @@ class OpenAIRewriter:
     ) -> dict:
         text = source_check(original_title, content)
         context = source_context(source_url, publisher_context)
+        checked = datetime.now(timezone.utc)
         source = {
             "original_title": original_title,
             "source_text": text,
             "verified_publisher_context": context,
             "source_url": source_url,
             "rss_timestamp_not_event_date": source_date,
-            "checked_at_utc": datetime.now(timezone.utc).isoformat(),
+            "checked_at_utc": checked.isoformat(),
+            "checked_at_oxford": checked.astimezone(ZoneInfo("America/Chicago")).strftime("%A, %B %d, %Y %I:%M %p %Z"),
         }
         evidence_fields = [normalized(value) for value in (original_title, text, context)]
         instructions = EXTRACT_PROMPT

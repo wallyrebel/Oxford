@@ -132,8 +132,9 @@ def validate_draft(draft: dict, source: str, context: str = "") -> dict:
     ):
         raise EditorialSkipError("wrong_school_district")
     # The model checker also checks names, spelled-out numbers, dates and attribution.
-    if numeric_details(combined) - numeric_details(source):
-        raise EditorialSkipError("unsupported_numeric_detail")
+    unsupported = numeric_details(combined) - numeric_details(source)
+    if unsupported:
+        raise EditorialSkipError("unsupported_numeric_detail: " + ", ".join(sorted(unsupported)))
     for quote in re.findall(r'[“"]([^“”"]{12,})[”"]', combined):
         if normalized(quote) not in normalized(source):
             raise EditorialSkipError("unsupported_direct_quote")
