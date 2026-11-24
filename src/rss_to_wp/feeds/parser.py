@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, Optional
+import os
 
 import feedparser
 import pendulum
@@ -18,6 +19,7 @@ logger = get_logger("feeds.parser")
 
 UNIVERSITY_NEWS = "https://olemiss.edu/news/"
 BLOOD_NEWS = "https://msblood.com/feed/"
+PUBLIC_RECORDS = "https://raw.githubusercontent.com/wallyrebel/MississippiNewsGroup/main/data/public-records/oxford.xml"
 
 
 def oxford_blood_notices():
@@ -100,6 +102,11 @@ def parse_feed(url: str) -> Optional[dict[str, Any]]:
             feed = university_news()
         elif url == BLOOD_NEWS:
             feed = oxford_blood_notices()
+        elif url == PUBLIC_RECORDS and (revision := os.getenv("PUBLIC_RECORDS_COMMIT")):
+            if not re.fullmatch(r"[0-9a-f]{40}", revision):
+                raise ValueError("Expected a full MississippiNewsGroup commit SHA")
+            logger.info("reading_verified_public_records_revision", revision=revision)
+            feed = feedparser.parse(PUBLIC_RECORDS.replace("/main/", f"/{revision}/"))
         else:
             feed = feedparser.parse(url)
 

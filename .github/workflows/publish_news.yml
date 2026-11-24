@@ -21,6 +21,10 @@ on:
         required: false
         default: ''
         type: string
+      public_records_commit:
+        description: 'Optional full MississippiNewsGroup commit for the Oxford public-records feed'
+        required: false
+        type: string
 
 env:
   PYTHON_VERSION: '3.11'
@@ -79,6 +83,7 @@ jobs:
           TARGET_MIN_WORDS: ${{ vars.TARGET_MIN_WORDS || '200' }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
           SINGLE_FEED: ${{ github.event.inputs.single_feed }}
+          PUBLIC_RECORDS_COMMIT: ${{ inputs.public_records_commit }}
           
           # WordPress
           WORDPRESS_BASE_URL: ${{ secrets.WORDPRESS_BASE_URL }}
