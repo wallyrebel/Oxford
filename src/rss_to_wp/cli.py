@@ -27,6 +27,7 @@ from rss_to_wp.feeds import (
 )
 from rss_to_wp.images import download_image, find_fallback_image, find_rss_image
 from rss_to_wp.rewriter import OpenAIRewriter
+from rss_to_wp.rewriter.nov24_copy import submission_key
 from rss_to_wp.rewriter.quality import (
     EditorialSkipError,
     canonical_source,
@@ -281,7 +282,7 @@ def process_feed(
         if processed >= feed_config.max_per_run:
             break
         entry_key = generate_entry_key(entry, feed_config.url)
-        fingerprint = source_fingerprint(get_entry_title(entry), get_entry_content(entry))
+        fingerprint = submission_key(source_fingerprint(get_entry_title(entry), get_entry_content(entry)))
         try:
             source_link = canonical_source(get_entry_link(entry) or "")
             if dedupe_store.is_rejected(entry_key, fingerprint):

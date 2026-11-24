@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
 from rss_to_wp.rewriter.model_options import create_model_completion, resolve_retired_model
+from rss_to_wp.rewriter.nov24_copy import SUBMISSIONS
 
 from openai import OpenAI
 
@@ -13,6 +14,7 @@ from rss_to_wp.rewriter.quality import (
     normalized,
     source_check,
     source_context,
+    source_fingerprint,
     validate_draft,
 )
 from rss_to_wp.utils import get_logger
@@ -224,7 +226,12 @@ class OpenAIRewriter:
             "extracted_facts": extracted["facts"],
             "soft_minimum_words": self.target_min_words,
         }
-        draft = self._call("write_article", self.model, WRITE_PROMPT, payload, DRAFT_SCHEMA)
+        submission = SUBMISSIONS.get(source_fingerprint(original_title, content))
+        if submission:
+            logger.info("checking_editor_submission", source=source_url)
+            draft = submission.copy()
+        else:
+            draft = self._call("write_article", self.model, WRITE_PROMPT, payload, DRAFT_SCHEMA)
         # One correction attempt can rescue a useful notice without relaxing approval.
         # Every revised sentence receives the same independent source check.
         for attempt in range(2):
