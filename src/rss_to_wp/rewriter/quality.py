@@ -105,8 +105,11 @@ def validate_draft(draft: dict, source: str, context: str = "") -> dict:
     if not all(isinstance(p, str) and p.strip() for p in paragraphs):
         raise EditorialSkipError("empty_paragraph")
     combined = " ".join([draft["headline"], draft["excerpt"], *paragraphs])
-    if calendar_dates(source) - calendar_dates(combined):
-        raise EditorialSkipError("omitted_source_calendar_date")
+    missing_dates = calendar_dates(source) - calendar_dates(combined)
+    if missing_dates:
+        labels = sorted({match.group() for match in CALENDAR_DATE.finditer(source)
+                         if (match[1][:3].lower(), int(match[2])) in missing_dates})
+        raise EditorialSkipError("omitted_source_calendar_date: Retain " + ", ".join(labels))
     dated_source = {(m[:3].lower(), int(d), y) for m, d, y in CALENDAR_DATE.findall(source) if y}
     dated_draft = {(m[:3].lower(), int(d), y) for m, d, y in CALENDAR_DATE.findall(combined) if y}
     for year in {date[2] for date in dated_source}:
