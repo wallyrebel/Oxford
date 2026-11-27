@@ -73,6 +73,10 @@ A complete short school notice or public service announcement can be usable.
 """
 WRITE_PROMPT = BOUNDARY + """Write an accurate AP-style local news article using supported
 facts only. Use a clear, specific headline and attribution to the actual named source.
+When a record combines sources, name the source of each part. Distinguish the
+organizer's event listing from what a linked registration form showed on its check date.
+For a series of figures, give the period and geography. If describing a trend through
+the latest month, include the last observation. Check the excerpt against the body.
 Do not imply an interview or a spokesperson if the source is a social post. Keep claims
 as attributed claims and allegations as allegations. Never expand OSD to another city.
 Dates in the source are event dates; the RSS timestamp may be a fetch/update time.
